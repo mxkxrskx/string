@@ -1,6 +1,5 @@
 #include "s21_string.h"
 //Спецификаторы PART 2: c d f s u
-
 typedef struct Specifiers{
     int c, d;
     double f;
@@ -11,6 +10,10 @@ typedef struct Specifiers{
     int len;
     int i_len;
 } Specifiers;
+
+//Ширина: (число)
+//Точность: .(xbckj)
+//Длина: h,l
 
 void getINTfromString(int num, int base, Specifiers* spec){
     char tmp[BUFF] = "\0";
@@ -30,6 +33,9 @@ void getINTfromString(int num, int base, Specifiers* spec){
 int getSpecFromLine(char format, va_list args, Specifiers *spec){
     int flag = 1;
     switch(format){
+        case '*':
+             
+            break;
         case 'c':
             spec->c = va_arg(args, int);
             spec->argv[spec->i_len][0] = (char)spec->c;
@@ -41,6 +47,7 @@ int getSpecFromLine(char format, va_list args, Specifiers *spec){
             break;
         case 'f':
             spec->f = va_arg(args, double);
+            gcvt(spec->f, 15, spec->argv[spec->i_len++]);
             break;
         case 's':
             spec->s = va_arg(args, char*);
@@ -48,6 +55,7 @@ int getSpecFromLine(char format, va_list args, Specifiers *spec){
             break;
         case 'u':
             spec->u = va_arg(args, unsigned int);
+            getINTfromString(spec->u, 10, spec);
             break;
         default:
             flag = 0;
@@ -58,19 +66,20 @@ int getSpecFromLine(char format, va_list args, Specifiers *spec){
 void getSpecFromFormat(const char *format, va_list args, Specifiers *spec){
     char *tmp = (char *)format;
     for(;*tmp++;){
+        if(*tmp ====)
         if(getSpecFromLine(*tmp, args, spec)){
             break;
         }
     }
 }
 
-void fill_arr(char *argv[], int count){
+void fillArr(char *argv[], int count){
     for(int i = 0; i < count; i++){
         argv[i] = (char *)calloc(BUFF, sizeof(char));
     }
 }
 
-void free_arr(char *argv[], int count){
+void freeArr(char *argv[], int count){
     for(int i = 0; i < count;i++){
         free(argv[i]);
     }
@@ -89,7 +98,7 @@ int count_spec(const char *format){
 void praseArgs(const char *format, va_list args){
     Specifiers spec = {0};
     spec.len= count_spec(format);
-    fill_arr(spec.argv, spec.len);
+    fillArr(spec.argv, spec.len);
     for(;*format++;){
         if(*format == '%'){
             getSpecFromFormat(format, args, &spec);
@@ -99,7 +108,7 @@ void praseArgs(const char *format, va_list args){
         printf("%s\n", spec.argv[i]);
     }
 
-    free_arr(spec.argv, spec.len);
+    freeArr(spec.argv, spec.len);
 }
 
 
@@ -111,6 +120,9 @@ void praseArgs(const char *format, va_list args){
 // }
 
 //Спецификаторы PART 2: c d f s 
+//Ширина: (число)
+//Точность: .(xbckj)
+//Длина: h,l
 
 int s21_sprintf(char *str, const char *format, ...){
     va_list args;
@@ -129,8 +141,7 @@ int main() {
     char name[] = "Makar";
     int age =  20;
     char str1[BUFF] = "\0";
-    //sprintf(str1, "Name: %s, Age: %d, float = %f %c", name, age, 3.14, '!');
-    s21_sprintf(str1, "Age: %d, Name: %s", age, name);
+    s21_sprintf(str1, "Name: %s, Age: %d, float = %f %c", name, age, 3.14, '!');
 
     return 0;
 }

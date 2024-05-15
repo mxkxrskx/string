@@ -1,7 +1,4 @@
 #include "s21_string.h"
-
-#define BUFF 1024
-
 #if  defined(__APPLE__) && defined(__MACH__)
 #define OS_NAME 1
 #define MIN_ERROR 0

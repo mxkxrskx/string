@@ -1,7 +1,7 @@
 #include "s21_string_test.h"
 
 void testing_strlen(const char *str){
-    size_t n = strlen(str);
+    s21_size_t n = strlen(str);
     s21_size_t n21 = s21_strlen(str);
     ck_assert_int_eq(n, n21);
 }
