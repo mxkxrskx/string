@@ -179,15 +179,3 @@ int s21_sscanf(const char *str, const char *format, ...) {
   va_end(args);
   return count;
 }
-
-int main() {
-  const char *input = "h-12.722e-2llo world";
-  char c1 = '\0', c2 = '\0';
-  float e = 0;
-
-  int count = s21_sscanf(input, "%c%e%c", &c1, &e, &c2);
-  printf("sscanf returned: %d\n", count);
-  printf("c1: %c\nd: %e\nc2: %c\n", c1, e, c2);
-
-  return 0;
-}
