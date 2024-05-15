@@ -1,4 +1,4 @@
-#include "../s21_string.h"
+#include "../s21_func/s21_string.h"
 
 Suite *suite_memchr(void);
 Suite *suite_memcmp(void);
