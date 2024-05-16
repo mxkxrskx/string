@@ -66,3 +66,30 @@ int s21_atoi_decimal(char **ptr) {
   int num = handle_decimal(ptr);
   return sign * num;
 }
+
+float handle_float(char **ptr) {
+  int sign = get_sign(ptr);
+  float num = 0.0;
+  num = s21_atoi_decimal(ptr);
+  if (**ptr == '.') {
+    (*ptr)++;
+    char *ptr_start = *ptr;
+    int decimal_digits = s21_atoi_decimal(ptr);
+    int decimal_exp = *ptr - ptr_start;
+    num += decimal_digits * powf(10.0f, -decimal_exp);
+  }
+  return sign * num;
+}
+
+float s21_atoi_float(char **ptr) {
+  int sign = get_sign(ptr);
+  float mantissa = 0.0;
+  mantissa = handle_float(ptr);
+  int exponent = 0;
+  if (**ptr == 'e' || **ptr == 'E') {
+    (*ptr)++;
+    exponent = s21_atoi_decimal(ptr);
+  }
+  float result = mantissa * powf(10.0f, exponent);
+  return sign * result;
+}
