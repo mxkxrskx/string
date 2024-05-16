@@ -60,3 +60,9 @@ int s21_atoi(char **ptr) {
   }
   return sign * num;
 }
+
+int s21_atoi_decimal(char **ptr) {
+  int sign = get_sign(ptr);
+  int num = handle_decimal(ptr);
+  return sign * num;
+}
