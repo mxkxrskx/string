@@ -1,6 +1,8 @@
 #ifndef S21_ATOI_H
 #define S21_ATOI_H
 
+#include <stdbool.h>
+
 bool is_sign(const char c);
 int get_sign(char **ptr);
 int s21_atoi(char **ptr);

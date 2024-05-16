@@ -1,6 +1,11 @@
-#include "s21_string.h"
 #include "s21_atoi.h"
+#include "s21_string.h"
 
+void skip_whitespace(char **ptr) {
+  while (isspace(**ptr)) {
+    (*ptr)++;
+  }
+}
 void handle_c(char **ptr, va_list args) {
   char *c = va_arg(args, char *);
   if (**ptr) {
@@ -30,6 +35,16 @@ void handle_f(char **ptr, va_list args) {
   }
 }
 
+void handle_s(char **ptr, va_list args) {
+  char *s = va_arg(args, char *);
+  while (**ptr != '\0' && **ptr != ' ') {
+    *s = **ptr;
+    (*ptr)++;
+    s++;
+  }
+  *s = '\0';
+}
+
 int s21_sscanf(const char *str, const char *format, ...) {
   char *ptr = (char *)str;
   va_list args;
@@ -45,9 +60,11 @@ int s21_sscanf(const char *str, const char *format, ...) {
         handle_c(&ptr, args);
         break;
       case 'd':
+        skip_whitespace(&ptr);
         handle_d(&ptr, args);
         break;
       case 'i':
+        skip_whitespace(&ptr);
         handle_i(&ptr, args);
         break;
       case 'e':
@@ -55,7 +72,15 @@ int s21_sscanf(const char *str, const char *format, ...) {
       case 'f':
       case 'g':
       case 'G':
+        skip_whitespace(&ptr);
         handle_f(&ptr, args);
+        break;
+      case 'o':
+        // implement o here
+        break;
+      case 's':
+        skip_whitespace(&ptr);
+        handle_s(&ptr, args);
         break;
       default:
         error = 1;
