@@ -59,6 +59,38 @@ void handle_string(char **ptr, va_list args) {
   *s = '\0';
 }
 
+unsigned long parse_pointer(char **ptr) {
+  unsigned long num = 0;
+  unsigned long max_num = ULONG_MAX / BASE_HEX;
+  bool is_overflow = false;
+  while (is_hex(**ptr) && !is_overflow) {
+    if (is_digit(**ptr)) {
+      if (num > max_num)
+        is_overflow = true;
+      num = num * BASE_HEX + (**ptr - '0');
+
+    } else if (is_lower(**ptr)) {
+      if (num > max_num)
+        is_overflow = true;
+      num = num * BASE_HEX + (**ptr - 'a') + 10;
+
+    } else if (is_upper(**ptr)) {
+      if (num > max_num)
+        is_overflow = true;
+      num = num * BASE_HEX + (**ptr - 'A') + 10;
+    }
+    (*ptr)++;
+  }
+  if (is_overflow)
+    num = ULONG_MAX;
+  return num;
+}
+
+void handle_pointer(char **ptr, va_list args) {
+  unsigned long *ll = va_arg(args, unsigned long *);
+  *ll = parse_pointer(ptr);
+}
+
 int s21_sscanf(const char *str, const char *format, ...) {
   char *ptr = (char *)str;
   va_list args;
@@ -108,6 +140,13 @@ int s21_sscanf(const char *str, const char *format, ...) {
         handle_string(&ptr, args);
         count++;
         break;
+      case 'p':
+        handle_pointer(&ptr, args);
+        count++;
+        break;
+      case '%':
+        format++;
+        break;
       default:
         error = true;
         break;
@@ -119,4 +158,11 @@ int s21_sscanf(const char *str, const char *format, ...) {
 
   va_end(args);
   return count;
+}
+
+int main() {
+  char str[] = "123%456";
+  int num;
+  int n = sscanf(str, "%d", &num);
+  printf("num = %d, n = %d\n", num, n);
 }

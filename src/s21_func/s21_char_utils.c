@@ -1,12 +1,11 @@
 #include "s21_char_utils.h"
 
 bool is_sign(char c) { return c == '-' || c == '+'; }
+bool is_lower(char c) { return c >= 'a' && c <= 'z'; }
+bool is_upper(char c) { return c >= 'A' && c <= 'Z'; }
 bool is_digit(char c) { return c >= '0' && c <= '9'; }
 bool is_octal(char c) { return c >= '0' && c <= '7'; }
-bool is_hex(char c) {
-  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
-         (c >= 'a' && c <= 'f');
-}
+bool is_hex(char c) { return is_digit(c) || is_lower(c) || is_upper(c); }
 
 void skip_whitespace(char **ptr) {
   while (**ptr == ' ') {

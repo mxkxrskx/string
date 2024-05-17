@@ -23,9 +23,9 @@ long parse_hexadecimal(char **ptr) {
   while (is_hex(**ptr)) {
     if (is_digit(**ptr)) {
       num = num * BASE_HEX + (**ptr - '0');
-    } else if (islower(**ptr)) {
+    } else if (is_lower(**ptr)) {
       num = num * BASE_HEX + (**ptr - 'a') + 10;
-    } else if (isupper(**ptr)) {
+    } else if (is_upper(**ptr)) {
       num = num * BASE_HEX + (**ptr - 'A') + 10;
     }
     (*ptr)++;

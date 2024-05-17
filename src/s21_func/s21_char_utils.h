@@ -12,6 +12,8 @@
 #define UNSIGNED 1
 
 bool is_sign(char c);
+bool is_lower(char c);
+bool is_upper(char c);
 bool is_digit(char c);
 bool is_octal(char c);
 bool is_hex(char c);
