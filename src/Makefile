@@ -11,4 +11,4 @@ test:
 clean:
 	rm -f s21_test
 
-rebuild: clean all
+rebuild: clean all 

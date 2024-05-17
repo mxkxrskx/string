@@ -33,6 +33,7 @@ char *s21_strchr(const char *str, int c);
 char *s21_strpbrk(const char *str1, const char *str2);
 char *s21_strncpy(char *dest, const char *src, s21_size_t n);
 int s21_sprintf(char *str, const char *format, ...);
+int s21_strncmp(const char *str1, const char *str2, s21_size_t n);
 
 
 
