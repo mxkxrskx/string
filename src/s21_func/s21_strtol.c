@@ -1,7 +1,7 @@
 #include "s21_strtol.h"
 
-int parse_octal(char **ptr) {
-  int num = 0;
+long parse_octal(char **ptr) {
+  long num = 0;
   while (is_octal(**ptr)) {
     num = num * BASE_OCTAL + (**ptr - '0');
     (*ptr)++;
@@ -9,8 +9,8 @@ int parse_octal(char **ptr) {
   return num;
 }
 
-int parse_decimal(char **ptr) {
-  int num = 0;
+long parse_decimal(char **ptr) {
+  long num = 0;
   while (is_digit(**ptr)) {
     num = num * BASE_DECIMAL + (**ptr - '0');
     (*ptr)++;
@@ -18,8 +18,8 @@ int parse_decimal(char **ptr) {
   return num;
 }
 
-int parse_hexadecimal(char **ptr) {
-  int num = 0;
+long parse_hexadecimal(char **ptr) {
+  long num = 0;
   while (is_hex(**ptr)) {
     if (is_digit(**ptr)) {
       num = num * BASE_HEX + (**ptr - '0');
@@ -33,11 +33,13 @@ int parse_hexadecimal(char **ptr) {
   return num;
 }
 
-int s21_strtol(const char *str, char **endptr, int base) {
+long s21_strtol(const char *str, char **endptr, int base, bool sign) {
   char *ptr = (char *)str;
-  int sign = get_sign(&ptr);
-  int num = 0;
-  if (base == BASE_UNKNOWN) {
+  if (sign == SIGNED) {
+    sign = get_sign(&ptr);
+  }
+  long num = 0;
+  if (base == BASE_UNKNOWN || sign == UNSIGNED) {
     base = get_base(&ptr);
   }
   switch (base) {

@@ -2,11 +2,11 @@
 
 float parse_float(char *ptr, char **endptr) {
   int sign = get_sign(&ptr);
-  float num = s21_strtol(ptr, &ptr, BASE_DECIMAL);
+  float num = s21_strtol(ptr, &ptr, BASE_DECIMAL, SIGNED);
   if (*ptr == '.') {
     ptr++;
     char *ptr_start = ptr;
-    int decimal_digits = s21_strtol(ptr, &ptr, BASE_DECIMAL);
+    int decimal_digits = s21_strtol(ptr, &ptr, BASE_DECIMAL, SIGNED);
     int decimal_exp = ptr - ptr_start;
     num += decimal_digits * powf(10.0f, -decimal_exp);
   }
@@ -23,7 +23,7 @@ float s21_strtod(const char *str, char **endptr) {
   int exponent = 0;
   if (*ptr == 'e' || *ptr == 'E') {
     ptr++;
-    exponent = s21_strtol(ptr, &ptr, BASE_DECIMAL);
+    exponent = s21_strtol(ptr, &ptr, BASE_DECIMAL, SIGNED);
   }
   float result = mantissa * powf(10.0f, exponent);
   if (endptr) {

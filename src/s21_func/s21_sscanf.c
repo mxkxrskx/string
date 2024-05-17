@@ -10,11 +10,20 @@ void handle_char(char **ptr, va_list args) {
   }
 }
 
-void handle_signed_integer(char **ptr, va_list args, int base) {
+bool handle_signed_integer(char **ptr, va_list args, int base) {
+  bool flag = 1;
   if (is_digit(**ptr) || is_sign(**ptr)) {
     int *d = va_arg(args, int *);
-    *d = s21_strtol(*ptr, ptr, base);
+    long val = s21_strtol(*ptr, ptr, base, SIGNED);
+    if (val >= INT_MIN && val <= INT_MAX) {
+      *d = (int)val;
+    } else {
+      *d = -1;
+    }
+  } else {
+    flag = 0;
   }
+  return flag;
 }
 
 void handle_float(char **ptr, va_list args) {
@@ -22,6 +31,22 @@ void handle_float(char **ptr, va_list args) {
     float *d = va_arg(args, float *);
     *d = s21_strtod(*ptr, ptr);
   }
+}
+
+bool handle_unsigned_integer(char **ptr, va_list args, int base) {
+  bool flag = 1;
+  if (is_digit(**ptr)) {
+    unsigned int *d = va_arg(args, unsigned int *);
+    long val = s21_strtol(*ptr, ptr, base, UNSIGNED);
+    if (val >= 0 && val <= UINT_MAX) {
+      *d = (unsigned int)val;
+    } else {
+      *d = -1;
+    }
+  } else {
+    flag = 0;
+  }
+  return flag;
 }
 
 void handle_string(char **ptr, va_list args) {
@@ -64,6 +89,19 @@ int s21_sscanf(const char *str, const char *format, ...) {
       case 'g':
       case 'G':
         handle_float(&ptr, args);
+        count++;
+        break;
+      case 'o':
+        handle_unsigned_integer(&ptr, args, BASE_OCTAL);
+        count++;
+        break;
+      case 'u':
+        handle_unsigned_integer(&ptr, args, BASE_DECIMAL);
+        count++;
+        break;
+      case 'x':
+      case 'X':
+        handle_unsigned_integer(&ptr, args, BASE_HEX);
         count++;
         break;
       case 's':
