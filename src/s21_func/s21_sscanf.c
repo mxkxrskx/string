@@ -14,7 +14,10 @@ bool handle_signed_integer(char **ptr, va_list args, int base) {
   bool flag = 1;
   if (is_digit(**ptr) || is_sign(**ptr)) {
     int *d = va_arg(args, int *);
-    long val = s21_strtol(*ptr, ptr, base, SIGNED);
+    int sign = get_sign(ptr);
+    if (base == BASE_UNKNOWN)
+      base = get_base(ptr);
+    long val = sign * parse_number(ptr, base);
     if (val >= INT_MIN && val <= INT_MAX) {
       *d = (int)val;
     } else {
@@ -26,11 +29,15 @@ bool handle_signed_integer(char **ptr, va_list args, int base) {
   return flag;
 }
 
-void handle_float(char **ptr, va_list args) {
+bool handle_float(char **ptr, va_list args) {
+  bool flag = 1;
   if (is_digit(**ptr) || is_sign(**ptr)) {
     float *d = va_arg(args, float *);
     *d = s21_strtod(*ptr, ptr);
+  } else {
+    flag = 0;
   }
+  return flag;
 }
 
 bool handle_unsigned_integer(char **ptr, va_list args, int base) {
@@ -161,8 +168,8 @@ int s21_sscanf(const char *str, const char *format, ...) {
 }
 
 int main() {
-  char str[] = "123%456";
+  char str[] = "1244443az/zz%456";
   int num;
-  int n = sscanf(str, "%d", &num);
+  int n = s21_sscanf(str, "%d", &num);
   printf("num = %d, n = %d\n", num, n);
 }
