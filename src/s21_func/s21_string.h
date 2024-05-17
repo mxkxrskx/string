@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <math.h>
 
 typedef long unsigned int s21_size_t;
 
@@ -31,7 +32,7 @@ char *s21_strerror(int errnum);
 s21_size_t s21_strlen(const char *str);
 char *s21_strchr(const char *str, int c);
 char *s21_strpbrk(const char *str1, const char *str2);
-
+int s21_atoi(char *ptr);
 int s21_sprintf(char *str, const char *format, ...);
 
 
