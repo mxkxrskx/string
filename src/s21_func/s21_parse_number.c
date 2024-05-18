@@ -10,8 +10,8 @@ long parse_number(char **ptr, int base) {
 
   long num = 0;
   while (**ptr && strchr(valid, **ptr) != NULL) {
-    int c = tolower((unsigned char)**ptr);
-    int digit = isdigit(c) ? c - '0' : c - 'a' + 10;
+    int c = to_lower(**ptr);
+    int digit = is_digit(c) ? c - '0' : c - 'a' + 10;
     num = num * base + digit;
     (*ptr)++;
   }

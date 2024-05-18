@@ -109,7 +109,6 @@ bool handle_pointer(char **ptr, va_list args) {
   }
   if (is_overflow)
     num = ULONG_MAX;
-
   if (*ptr - ptr_start > 0)
     *ll = num;
   else
@@ -130,56 +129,67 @@ int s21_sscanf(const char *str, const char *format, ...) {
       skip_whitespace(&ptr);
       switch (*format) {
       case 'c':
-        handle_char(&ptr, args) ? count++ : (error = true);
+        error = !handle_char(&ptr, args);
         break;
       case 'd':
-        handle_signed_integer(&ptr, args, BASE_DECIMAL) ? count++
-                                                        : (error = true);
-        break;
       case 'i':
-        handle_signed_integer(&ptr, args, BASE_UNKNOWN) ? count++
-                                                        : (error = true);
+        error = !handle_signed_integer(&ptr, args, BASE_DECIMAL);
         break;
       case 'e':
       case 'E':
       case 'f':
       case 'g':
       case 'G':
-        handle_float(&ptr, args);
-        count++;
+        error = !handle_float(&ptr, args);
         break;
       case 'o':
-        handle_unsigned_integer(&ptr, args, BASE_OCTAL) ? count++
-                                                        : (error = true);
+        error = !handle_unsigned_integer(&ptr, args, BASE_OCTAL);
         break;
       case 'u':
-        handle_unsigned_integer(&ptr, args, BASE_DECIMAL) ? count++
-                                                          : (error = true);
+        error = !handle_unsigned_integer(&ptr, args, BASE_DECIMAL);
         break;
       case 'x':
       case 'X':
-        handle_unsigned_integer(&ptr, args, BASE_HEX) ? count++
-                                                      : (error = true);
+        error = !handle_unsigned_integer(&ptr, args, BASE_HEX);
         break;
       case 's':
-        handle_string(&ptr, args) ? count++ : (error = true);
+        error = !handle_string(&ptr, args);
         break;
       case 'p':
-        handle_pointer(&ptr, args);
-        count++;
+        error = !handle_pointer(&ptr, args);
         break;
       case '%':
         format++;
+        if (*ptr != '%')
+          error = true;
+        else
+          ptr++;
         break;
       default:
         error = true;
         break;
       }
-    } else {
+      if (!error) {
+        count++;
+        format++;
+      }
+    } else if (*format != *ptr)
+      error = true;
+    else {
       format++;
+      ptr++;
     }
   }
 
   va_end(args);
   return count;
+}
+
+int main() {
+
+  char str[] = "1234567p34";
+  int num1 = 2;
+  int num2 = 7;
+  int n = s21_sscanf(str, "%dp%d", &num1, &num2);
+  printf("n = %d\nnum1 = %d\nnum2 = %d\n", n, num1, num2);
 }
