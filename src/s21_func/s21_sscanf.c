@@ -185,11 +185,3 @@ int s21_sscanf(const char *str, const char *format, ...) {
   return count;
 }
 
-int main() {
-
-  char str[] = "1234567p34";
-  int num1 = 2;
-  int num2 = 7;
-  int n = s21_sscanf(str, "%dp%d", &num1, &num2);
-  printf("n = %d\nnum1 = %d\nnum2 = %d\n", n, num1, num2);
-}
