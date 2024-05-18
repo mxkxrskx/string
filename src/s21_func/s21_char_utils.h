@@ -17,6 +17,7 @@ bool is_upper(char c);
 bool is_digit(char c);
 bool is_octal(char c);
 bool is_hex(char c);
+char to_lower(char c);
 
 void skip_whitespace(char **ptr);
 

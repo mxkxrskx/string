@@ -1,62 +1,86 @@
+#include "s21_parse_number.h"
 #include "s21_string.h"
-#include "s21_strtod.h"
-#include "s21_strtol.h"
 
-void handle_char(char **ptr, va_list args) {
+bool handle_char(char **ptr, va_list args) {
+  bool flag = 1;
   char *c = va_arg(args, char *);
   if (**ptr) {
     *c = **ptr;
     (*ptr)++;
-  }
+  } else
+    flag = 0;
+  return flag;
 }
 
 bool handle_signed_integer(char **ptr, va_list args, int base) {
   bool flag = 1;
-  if (is_digit(**ptr) || is_sign(**ptr)) {
-    int *d = va_arg(args, int *);
-    int sign = get_sign(ptr);
-    if (base == BASE_UNKNOWN)
-      base = get_base(ptr);
-    long val = sign * parse_number(ptr, base);
-    if (val >= INT_MIN && val <= INT_MAX) {
+  int *d = va_arg(args, int *);
+  int sign = get_sign(ptr);
+  char *ptr_start = *ptr;
+  if (base == BASE_UNKNOWN)
+    base = get_base(ptr);
+  long val = sign * parse_number(ptr, base);
+  if (*ptr - ptr_start > 0)
+    if (val >= INT_MIN && val <= INT_MAX)
       *d = (int)val;
-    } else {
+    else
       *d = -1;
-    }
-  } else {
+  else
     flag = 0;
-  }
   return flag;
 }
 
 bool handle_float(char **ptr, va_list args) {
   bool flag = 1;
-  if (is_digit(**ptr) || is_sign(**ptr)) {
-    float *d = va_arg(args, float *);
-    *d = s21_strtod(*ptr, ptr);
-  } else {
-    flag = 0;
+  float *d = va_arg(args, float *);
+
+  int sign = get_sign(ptr);
+  char *ptr_num_start = *ptr;
+
+  float mantissa = parse_number(ptr, BASE_DECIMAL);
+  if (**ptr == '.') {
+    (*ptr)++;
+    char *ptr_point_start = *ptr;
+    long decimal_digits = parse_number(ptr, BASE_DECIMAL);
+    int decimal_exp = *ptr - ptr_point_start;
+    mantissa += decimal_digits * powf(10.0f, -decimal_exp);
   }
+
+  int exponent = 0;
+  if (**ptr == 'e' || **ptr == 'E') {
+    (*ptr)++;
+    exponent = get_sign(ptr) * parse_number(ptr, BASE_DECIMAL);
+  }
+
+  float val = mantissa * powf(10.0f, exponent);
+  if (*ptr - ptr_num_start > 0)
+    *d = sign * val;
+  else
+    flag = 0;
+
   return flag;
 }
 
 bool handle_unsigned_integer(char **ptr, va_list args, int base) {
   bool flag = 1;
-  if (is_digit(**ptr)) {
-    unsigned int *d = va_arg(args, unsigned int *);
-    long val = s21_strtol(*ptr, ptr, base, UNSIGNED);
-    if (val >= 0 && val <= UINT_MAX) {
+  unsigned int *d = va_arg(args, unsigned int *);
+  char *ptr_start = *ptr;
+  get_base(ptr);
+  long val = parse_number(ptr, base);
+  if (*ptr - ptr_start > 0)
+    if (val >= 0 && val <= UINT_MAX)
       *d = (unsigned int)val;
-    } else {
+    else
       *d = -1;
-    }
-  } else {
+  else
     flag = 0;
-  }
   return flag;
 }
 
-void handle_string(char **ptr, va_list args) {
+bool handle_string(char **ptr, va_list args) {
+  bool flag = 0;
+  if (**ptr)
+    flag = 1;
   char *s = va_arg(args, char *);
   while (**ptr && **ptr != ' ') {
     *s = **ptr;
@@ -64,38 +88,33 @@ void handle_string(char **ptr, va_list args) {
     s++;
   }
   *s = '\0';
+  return flag;
 }
 
-unsigned long parse_pointer(char **ptr) {
+bool handle_pointer(char **ptr, va_list args) {
+  bool flag = 1;
+  unsigned long *ll = va_arg(args, unsigned long *);
+  char *ptr_start = *ptr;
+  get_base(ptr);
   unsigned long num = 0;
-  unsigned long max_num = ULONG_MAX / BASE_HEX;
   bool is_overflow = false;
-  while (is_hex(**ptr) && !is_overflow) {
-    if (is_digit(**ptr)) {
-      if (num > max_num)
-        is_overflow = true;
-      num = num * BASE_HEX + (**ptr - '0');
-
-    } else if (is_lower(**ptr)) {
-      if (num > max_num)
-        is_overflow = true;
-      num = num * BASE_HEX + (**ptr - 'a') + 10;
-
-    } else if (is_upper(**ptr)) {
-      if (num > max_num)
-        is_overflow = true;
-      num = num * BASE_HEX + (**ptr - 'A') + 10;
-    }
+  while (**ptr && is_hex(**ptr)) {
+    int c = tolower((unsigned char)**ptr);
+    int digit = isdigit(c) ? c - '0' : c - 'a' + 10;
+    if (num * BASE_HEX + digit > ULONG_MAX / BASE_HEX)
+      is_overflow = true;
+    else
+      num = num * BASE_HEX + digit;
     (*ptr)++;
   }
   if (is_overflow)
     num = ULONG_MAX;
-  return num;
-}
 
-void handle_pointer(char **ptr, va_list args) {
-  unsigned long *ll = va_arg(args, unsigned long *);
-  *ll = parse_pointer(ptr);
+  if (*ptr - ptr_start > 0)
+    *ll = num;
+  else
+    flag = 0;
+  return flag;
 }
 
 int s21_sscanf(const char *str, const char *format, ...) {
@@ -111,16 +130,15 @@ int s21_sscanf(const char *str, const char *format, ...) {
       skip_whitespace(&ptr);
       switch (*format) {
       case 'c':
-        handle_char(&ptr, args);
-        count++;
+        handle_char(&ptr, args) ? count++ : (error = true);
         break;
       case 'd':
-        handle_signed_integer(&ptr, args, BASE_DECIMAL);
-        count++;
+        handle_signed_integer(&ptr, args, BASE_DECIMAL) ? count++
+                                                        : (error = true);
         break;
       case 'i':
-        handle_signed_integer(&ptr, args, BASE_UNKNOWN);
-        count++;
+        handle_signed_integer(&ptr, args, BASE_UNKNOWN) ? count++
+                                                        : (error = true);
         break;
       case 'e':
       case 'E':
@@ -131,21 +149,20 @@ int s21_sscanf(const char *str, const char *format, ...) {
         count++;
         break;
       case 'o':
-        handle_unsigned_integer(&ptr, args, BASE_OCTAL);
-        count++;
+        handle_unsigned_integer(&ptr, args, BASE_OCTAL) ? count++
+                                                        : (error = true);
         break;
       case 'u':
-        handle_unsigned_integer(&ptr, args, BASE_DECIMAL);
-        count++;
+        handle_unsigned_integer(&ptr, args, BASE_DECIMAL) ? count++
+                                                          : (error = true);
         break;
       case 'x':
       case 'X':
-        handle_unsigned_integer(&ptr, args, BASE_HEX);
-        count++;
+        handle_unsigned_integer(&ptr, args, BASE_HEX) ? count++
+                                                      : (error = true);
         break;
       case 's':
-        handle_string(&ptr, args);
-        count++;
+        handle_string(&ptr, args) ? count++ : (error = true);
         break;
       case 'p':
         handle_pointer(&ptr, args);
@@ -165,11 +182,4 @@ int s21_sscanf(const char *str, const char *format, ...) {
 
   va_end(args);
   return count;
-}
-
-int main() {
-  char str[] = "1244443az/zz%456";
-  int num;
-  int n = s21_sscanf(str, "%d", &num);
-  printf("num = %d, n = %d\n", num, n);
 }
