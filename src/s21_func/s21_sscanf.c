@@ -8,43 +8,96 @@ int get_len(char **ptr) {
   return n;
 }
 
+s21_type get_type(char **format) {
+  s21_type type = DEFAULT;
+  switch (**format) {
+  case 'h':
+    type = SHORT_INT;
+    (*format)++;
+    break;
+  case 'l':
+    type = LONG_INT;
+    (*format)++;
+    break;
+  case 'L':
+    type = LONG_DOUBLE;
+    (*format)++;
+    break;
+  }
+  return type;
+}
+
 bool handle_char(char **ptr, va_list args, int len) {
-  bool flag = 1;
-  char *c = va_arg(args, char *);
+  bool flag = true;
   if (**ptr) {
-    *c = **ptr;
+    *va_arg(args, char *) = **ptr;
     char *ptr_start = *ptr;
     (*ptr)++;
     while (**ptr && *ptr - ptr_start < len && len != INT_MAX) {
       (*ptr)++;
     }
   } else
-    flag = 0;
+    flag = false;
   return flag;
 }
 
-bool handle_signed_integer(char **ptr, va_list args, int base, int len) {
-  bool flag = 1;
-  int *d = va_arg(args, int *);
+bool assign_value_signed_integer(va_list args, long double val, s21_type type,
+                                 int shift) {
+  bool flag = true;
+  if (shift > 0) {
+    switch (type) {
+    case SHORT_INT:
+      if (val >= SHRT_MIN && val <= SHRT_MAX)
+        *va_arg(args, short int *) = (short int)val;
+      else
+        *va_arg(args, short int *) = -1;
+      break;
+    case LONG_INT:
+      if (val >= LONG_MIN && val <= LONG_MAX)
+        *va_arg(args, long int *) = (long int)val;
+      else
+        *va_arg(args, long int *) = -1;
+      break;
+    default:
+      if (val >= INT_MIN && val <= INT_MAX)
+        *va_arg(args, int *) = (int)val;
+      else
+        *va_arg(args, int *) = -1;
+      break;
+    }
+  } else
+    flag = false;
+  return flag;
+}
+
+bool handle_signed_integer(char **ptr, va_list args, int base, int len,
+                           s21_type type) {
   int sign = get_sign(ptr);
   char *ptr_start = *ptr;
   if (base == BASE_UNKNOWN)
     base = get_base(ptr);
-  long val = sign * parse_number(ptr, base, len);
-  if (*ptr - ptr_start > 0)
-    if (val >= INT_MIN && val <= INT_MAX)
-      *d = (int)val;
-    else
-      *d = -1;
-  else
-    flag = 0;
+  long double val = sign * parse_number(ptr, base, len);
+  return assign_value_signed_integer(args, val, type, *ptr - ptr_start);
+}
+
+bool assign_value_float(va_list args, long double val, s21_type type,
+                        int shift) {
+  bool flag = true;
+  if (shift > 0) {
+    switch (type) {
+    case LONG_DOUBLE:
+      *va_arg(args, long double *) = (long double)val;
+      break;
+    default:
+      *va_arg(args, float *) = (float)val;
+      break;
+    }
+  } else
+    flag = false;
   return flag;
 }
 
-bool handle_float(char **ptr, va_list args, int len) {
-  bool flag = 1;
-  float *d = va_arg(args, float *);
-
+bool handle_float(char **ptr, va_list args, int len, s21_type type) {
   char *ptr_num_start = *ptr;
   int sign = get_sign(ptr);
   if (*ptr - ptr_num_start > 0) {
@@ -52,65 +105,82 @@ bool handle_float(char **ptr, va_list args, int len) {
     len--;
   }
 
-  float mantissa = parse_number(ptr, BASE_DECIMAL, len);
+  long double mantissa = parse_number(ptr, BASE_DECIMAL, len);
   len -= *ptr - ptr_num_start;
   if (**ptr == '.' && len > 0) {
     (*ptr)++;
     len--;
     char *ptr_point_start = *ptr;
-    long decimal_digits = parse_number(ptr, BASE_DECIMAL, len);
+    long double decimal_digits = parse_number(ptr, BASE_DECIMAL, len);
     int decimal_exp = *ptr - ptr_point_start;
     len -= decimal_exp;
-    mantissa += decimal_digits * powf(10.0f, -decimal_exp);
+    mantissa += decimal_digits * pow(10.0, -decimal_exp);
   }
 
-  if (*ptr - ptr_num_start == 0) return false;
+  if (*ptr - ptr_num_start == 0)
+    return false;
 
   int exponent = 0;
   if ((**ptr == 'e' || **ptr == 'E') && len > 0) {
-    (*ptr)++;
-    len--;
     char *temp_ptr = *ptr;
+    (*ptr)++;
+
     int sign_e = get_sign(ptr);
-    if (*ptr - temp_ptr > 0)
-      len--;
+    len -= *ptr - temp_ptr;
     char *ptr_point_start = *ptr;
-    long number_e = parse_number(ptr, BASE_DECIMAL, len);
+    long double number_e = parse_number(ptr, BASE_DECIMAL, len);
     if (*ptr - ptr_point_start > 0)
       exponent = sign_e * number_e;
-    else 
-      *ptr = temp_ptr - 1;
+    else
+      *ptr = temp_ptr;
   }
 
-  float val = mantissa * powf(10.0f, exponent);
-  if (*ptr - ptr_num_start > 0)
-    *d = sign * val;
-  else
-    flag = 0;
+  long double val = mantissa * pow(10.0, exponent) * sign;
 
+  return assign_value_float(args, val, type, *ptr - ptr_num_start);
+}
+
+bool assign_value_unsigned_integer(va_list args, long double val, s21_type type,
+                                   int shift) {
+  bool flag = true;
+  if (shift > 0) {
+    switch (type) {
+    case SHORT_INT:
+      if (val >= 0 && val <= USHRT_MAX)
+        *va_arg(args, unsigned short int *) = (unsigned short int)val;
+      else
+        *va_arg(args, unsigned short int *) = -1;
+      break;
+    case LONG_INT:
+      if (val >= 0 && val <= ULONG_MAX)
+        *va_arg(args, unsigned long int *) = (unsigned long int)val;
+      else
+        *va_arg(args, unsigned long int *) = -1;
+      break;
+    default:
+      if (val >= 0 && val <= UINT_MAX)
+        *va_arg(args, unsigned int *) = (unsigned int)val;
+      else
+        *va_arg(args, unsigned int *) = -1;
+      break;
+    }
+  } else
+    flag = false;
   return flag;
 }
 
-bool handle_unsigned_integer(char **ptr, va_list args, int base, int len) {
-  bool flag = 1;
-  unsigned int *d = va_arg(args, unsigned int *);
+bool handle_unsigned_integer(char **ptr, va_list args, int base, int len,
+                             s21_type type) {
   char *ptr_start = *ptr;
   get_base(ptr);
-  long val = parse_number(ptr, base, len);
-  if (*ptr - ptr_start > 0)
-    if (val >= 0 && val <= UINT_MAX)
-      *d = (unsigned int)val;
-    else
-      *d = -1;
-  else
-    flag = 0;
-  return flag;
+  long double val = parse_number(ptr, base, len);
+  return assign_value_unsigned_integer(args, val, type, *ptr - ptr_start);
 }
 
 bool handle_string(char **ptr, va_list args, int len) {
-  bool flag = 0;
+  bool flag = false;
   if (**ptr)
-    flag = 1;
+    flag = true;
   char *s = va_arg(args, char *);
   char *ptr_start = *ptr;
   while (**ptr && **ptr != ' ' && *ptr - ptr_start < len) {
@@ -123,8 +193,7 @@ bool handle_string(char **ptr, va_list args, int len) {
 }
 
 bool handle_pointer(char **ptr, va_list args, int len) {
-  bool flag = 1;
-  unsigned long *ll = va_arg(args, unsigned long *);
+  bool flag = true;
   char *ptr_start = *ptr;
   get_base(ptr);
   unsigned long num = 0;
@@ -141,17 +210,17 @@ bool handle_pointer(char **ptr, va_list args, int len) {
   if (is_overflow)
     num = ULONG_MAX;
   if (*ptr - ptr_start > 0)
-    *ll = num;
+    *va_arg(args, unsigned long *) = num;
   else
-    flag = 0;
+    flag = false;
   return flag;
 }
 
 bool handle_percent(char **str, char **format) {
-  bool flag = 1;
+  bool flag = true;
   (*format)++;
   if (**str != '%')
-    flag = 0;
+    flag = false;
   else
     (*str)++;
   return flag;
@@ -163,38 +232,43 @@ int s21_sscanf(const char *str, const char *format, ...) {
   va_list args;
   va_start(args, format);
 
-  int count = 0;
+  int count = -1;
   bool success = true;
+  skip_whitespace(&ptr_str);
   while (*ptr_format && *ptr_str && success) {
     skip_whitespace(&ptr_format);
     if (*ptr_format == '%') {
       ptr_format++;
       skip_whitespace(&ptr_str);
       int len = get_len(&ptr_format);
+      s21_type type = get_type(&ptr_format);
       switch (*ptr_format) {
       case 'c':
         success = handle_char(&ptr_str, args, len);
         break;
       case 'd':
       case 'i':
-        success = handle_signed_integer(&ptr_str, args, BASE_DECIMAL, len);
+        success =
+            handle_signed_integer(&ptr_str, args, BASE_DECIMAL, len, type);
         break;
       case 'e':
       case 'E':
       case 'f':
       case 'g':
       case 'G':
-        success = handle_float(&ptr_str, args, len);
+        success = handle_float(&ptr_str, args, len, type);
         break;
       case 'o':
-        success = handle_unsigned_integer(&ptr_str, args, BASE_OCTAL, len);
+        success =
+            handle_unsigned_integer(&ptr_str, args, BASE_OCTAL, len, type);
         break;
       case 'u':
-        success = handle_unsigned_integer(&ptr_str, args, BASE_DECIMAL, len);
+        success =
+            handle_unsigned_integer(&ptr_str, args, BASE_DECIMAL, len, type);
         break;
       case 'x':
       case 'X':
-        success = handle_unsigned_integer(&ptr_str, args, BASE_HEX, len);
+        success = handle_unsigned_integer(&ptr_str, args, BASE_HEX, len, type);
         break;
       case 's':
         success = handle_string(&ptr_str, args, len);
@@ -210,6 +284,8 @@ int s21_sscanf(const char *str, const char *format, ...) {
         break;
       }
       if (success) {
+        if (count < 0)
+          count++;
         count++;
         ptr_format++;
       }
