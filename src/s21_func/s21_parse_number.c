@@ -10,7 +10,7 @@ long double parse_number(char **ptr, int base, int len) {
 
   char *ptr_start = *ptr;
   double num = 0;
-  while (**ptr && *ptr - ptr_start < len && strchr(valid, **ptr) != NULL) {
+  while (**ptr && *ptr - ptr_start < len && s21_strchr(valid, **ptr) != NULL) {
     int c = to_lower(**ptr);
     int digit = is_digit(c) ? c - '0' : c - 'a' + 10;
     num = num * base + digit;

@@ -1,9 +1,9 @@
 #include "s21_sscanf.h"
 
-int get_len(char **ptr) {
-  char *ptr_start = *ptr;
-  int n = parse_number(ptr, BASE_DECIMAL, INT_MAX);
-  if (*ptr - ptr_start == 0 || n == 0)
+int get_len(char **format) {
+  char *ptr_start = *format;
+  int n = parse_number(format, BASE_DECIMAL, INT_MAX);
+  if (*format - ptr_start == 0 || n == 0)
     n = INT_MAX;
   return n;
 }
@@ -27,10 +27,30 @@ s21_type get_type(char **format) {
   return type;
 }
 
-bool handle_char(char **ptr, va_list args, int len) {
+bool get_asterisk(char **format) {
+  bool flag = true;
+  if (format && **format == '*')
+    (*format)++;
+  else
+    flag = false;
+  return flag;
+}
+
+void fill_struct(char **ptr, s21_flags *flags) {
+  flags->len = get_len(ptr);
+  flags->type = get_type(ptr);
+  flags->asterisk = get_asterisk(ptr);
+}
+
+    void assign_value_char(va_list args, char val, bool asterisk) {
+  if (!asterisk)
+    *va_arg(args, char *) = val;
+}
+
+bool handle_char(char **ptr, va_list args, int len, bool asterisk) {
   bool flag = true;
   if (**ptr) {
-    *va_arg(args, char *) = **ptr;
+    assign_value_char(args, **ptr, asterisk);
     char *ptr_start = *ptr;
     (*ptr)++;
     while (**ptr && *ptr - ptr_start < len && len != INT_MAX) {
@@ -42,9 +62,11 @@ bool handle_char(char **ptr, va_list args, int len) {
 }
 
 bool assign_value_signed_integer(va_list args, long double val, s21_type type,
-                                 int shift) {
+                                 int shift, bool asterisk) {
   bool flag = true;
-  if (shift > 0) {
+  if (shift == 0)
+    flag = false;
+  else if (!asterisk) {
     switch (type) {
     case SHORT_INT:
       if (val >= SHRT_MIN && val <= SHRT_MAX)
@@ -65,25 +87,27 @@ bool assign_value_signed_integer(va_list args, long double val, s21_type type,
         *va_arg(args, int *) = -1;
       break;
     }
-  } else
-    flag = false;
+  }
   return flag;
 }
 
 bool handle_signed_integer(char **ptr, va_list args, int base, int len,
-                           s21_type type) {
+                           s21_type type, bool asterisk) {
   int sign = get_sign(ptr);
   char *ptr_start = *ptr;
   if (base == BASE_UNKNOWN)
     base = get_base(ptr);
   long double val = sign * parse_number(ptr, base, len);
-  return assign_value_signed_integer(args, val, type, *ptr - ptr_start);
+  return assign_value_signed_integer(args, val, type, *ptr - ptr_start,
+                                     asterisk);
 }
 
-bool assign_value_float(va_list args, long double val, s21_type type,
-                        int shift) {
+bool assign_value_float(va_list args, long double val, s21_type type, int shift,
+                        bool asterisk) {
   bool flag = true;
-  if (shift > 0) {
+  if (shift == 0)
+    flag = false;
+  else if (!asterisk) {
     switch (type) {
     case LONG_DOUBLE:
       *va_arg(args, long double *) = (long double)val;
@@ -92,12 +116,12 @@ bool assign_value_float(va_list args, long double val, s21_type type,
       *va_arg(args, float *) = (float)val;
       break;
     }
-  } else
-    flag = false;
+  }
   return flag;
 }
 
-bool handle_float(char **ptr, va_list args, int len, s21_type type) {
+bool handle_float(char **ptr, va_list args, int len, s21_type type,
+                  bool asterisk) {
   char *ptr_num_start = *ptr;
   int sign = get_sign(ptr);
   if (*ptr - ptr_num_start > 0) {
@@ -137,13 +161,15 @@ bool handle_float(char **ptr, va_list args, int len, s21_type type) {
 
   long double val = mantissa * pow(10.0, exponent) * sign;
 
-  return assign_value_float(args, val, type, *ptr - ptr_num_start);
+  return assign_value_float(args, val, type, *ptr - ptr_num_start, asterisk);
 }
 
 bool assign_value_unsigned_integer(va_list args, long double val, s21_type type,
-                                   int shift) {
+                                   int shift, bool asterisk) {
   bool flag = true;
-  if (shift > 0) {
+  if (shift == 0)
+    flag = false;
+  else if (!asterisk) {
     switch (type) {
     case SHORT_INT:
       if (val >= 0 && val <= USHRT_MAX)
@@ -164,35 +190,44 @@ bool assign_value_unsigned_integer(va_list args, long double val, s21_type type,
         *va_arg(args, unsigned int *) = -1;
       break;
     }
+  }
+  return flag;
+}
+
+bool handle_unsigned_integer(char **ptr, va_list args, int base, int len,
+                             s21_type type, bool asterisk) {
+  char *ptr_start = *ptr;
+  get_base(ptr);
+  long double val = parse_number(ptr, base, len);
+  return assign_value_unsigned_integer(args, val, type, *ptr - ptr_start,
+                                       asterisk);
+}
+
+void assign_value_string(char **ptr, char *s, int len, bool asterisk) {
+  char *ptr_start = *ptr;
+  while (**ptr && **ptr != ' ' && *ptr - ptr_start < len) {
+    if (!asterisk) {
+      *s = **ptr;
+      s++;
+    }
+    (*ptr)++;
+  }
+  if (!asterisk) {
+    *s = '\0';
+  }
+}
+
+bool handle_string(char **ptr, va_list args, int len, bool asterisk) {
+  bool flag = true;
+  if (**ptr) {
+    char *s = va_arg(args, char *);
+    assign_value_string(ptr, s, len, asterisk);
   } else
     flag = false;
   return flag;
 }
 
-bool handle_unsigned_integer(char **ptr, va_list args, int base, int len,
-                             s21_type type) {
-  char *ptr_start = *ptr;
-  get_base(ptr);
-  long double val = parse_number(ptr, base, len);
-  return assign_value_unsigned_integer(args, val, type, *ptr - ptr_start);
-}
-
-bool handle_string(char **ptr, va_list args, int len) {
-  bool flag = false;
-  if (**ptr)
-    flag = true;
-  char *s = va_arg(args, char *);
-  char *ptr_start = *ptr;
-  while (**ptr && **ptr != ' ' && *ptr - ptr_start < len) {
-    *s = **ptr;
-    (*ptr)++;
-    s++;
-  }
-  *s = '\0';
-  return flag;
-}
-
-bool handle_pointer(char **ptr, va_list args, int len) {
+bool handle_pointer(char **ptr, va_list args, int len, bool asterisk) {
   bool flag = true;
   char *ptr_start = *ptr;
   get_base(ptr);
@@ -209,10 +244,10 @@ bool handle_pointer(char **ptr, va_list args, int len) {
   }
   if (is_overflow)
     num = ULONG_MAX;
-  if (*ptr - ptr_start > 0)
-    *va_arg(args, unsigned long *) = num;
-  else
+  if (*ptr - ptr_start == 0)
     flag = false;
+  else if (!asterisk)
+    *va_arg(args, unsigned long *) = num;
   return flag;
 }
 
@@ -242,39 +277,43 @@ int s21_sscanf(const char *str, const char *format, ...) {
       skip_whitespace(&ptr_str);
       int len = get_len(&ptr_format);
       s21_type type = get_type(&ptr_format);
+      bool asterisk = get_asterisk(&ptr_format);
+      if (type != DEFAULT && asterisk)
+        break;
       switch (*ptr_format) {
       case 'c':
-        success = handle_char(&ptr_str, args, len);
+        success = handle_char(&ptr_str, args, len, asterisk);
         break;
       case 'd':
       case 'i':
-        success =
-            handle_signed_integer(&ptr_str, args, BASE_DECIMAL, len, type);
+        success = handle_signed_integer(&ptr_str, args, BASE_DECIMAL, len, type,
+                                        asterisk);
         break;
       case 'e':
       case 'E':
       case 'f':
       case 'g':
       case 'G':
-        success = handle_float(&ptr_str, args, len, type);
+        success = handle_float(&ptr_str, args, len, type, asterisk);
         break;
       case 'o':
-        success =
-            handle_unsigned_integer(&ptr_str, args, BASE_OCTAL, len, type);
+        success = handle_unsigned_integer(&ptr_str, args, BASE_OCTAL, len, type,
+                                          asterisk);
         break;
       case 'u':
-        success =
-            handle_unsigned_integer(&ptr_str, args, BASE_DECIMAL, len, type);
+        success = handle_unsigned_integer(&ptr_str, args, BASE_DECIMAL, len,
+                                          type, asterisk);
         break;
       case 'x':
       case 'X':
-        success = handle_unsigned_integer(&ptr_str, args, BASE_HEX, len, type);
+        success = handle_unsigned_integer(&ptr_str, args, BASE_HEX, len, type,
+                                          asterisk);
         break;
       case 's':
-        success = handle_string(&ptr_str, args, len);
+        success = handle_string(&ptr_str, args, len, asterisk);
         break;
       case 'p':
-        success = handle_pointer(&ptr_str, args, len);
+        success = handle_pointer(&ptr_str, args, len, asterisk);
         break;
       case '%':
         success = handle_percent(&ptr_str, &ptr_format);
