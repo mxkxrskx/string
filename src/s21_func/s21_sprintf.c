@@ -1,19 +1,130 @@
+#include "s21_char_utils.h"
+#include "s21_parse_number.h"
 #include "s21_string.h"
-//Спецификаторы PART 2: c d f s u
-typedef struct Specifiers{
-    int c, d;
-    double f;
-    char *s;
-    unsigned int u;
-} Specifiers;
 
 
-bool s21_isdigit(char c){
-    return (c >= '0' && c <= '9');
+int main() {
+  char str1[BUFF] = "\0";
+  s21_sprintf(str1, "%- +024d strstrstr%c", -51, '1');
+  printf("%s", str1);          
+
+  return 0;
 }
 
 
-void getNUMfromString(int num, int base, Specifiers* spec){
+// Спецификаторы PART 2: c d f s u
+typedef struct Specifiers {
+  bool space;
+  bool zero;
+  bool minus;
+  bool plus;
+  
+  char length;
+  int width;
+  int precision;
+
+
+} Specifiers;
+
+// void getFLOATfromString(double f, Specifiers *spec){
+//     long double left = 0.0;
+//     long double right = modfl(f, &left);
+//     getNUMfromString((int)left, 10, spec);
+//     spec->i_len--;
+//     int count = 0;
+//     while(count != 6){
+//         right*=10;
+//         count++;
+//     }
+//     strcat(spec->argv[spec->i_len], ".");
+//     getNUMfromString((int)right, 10, spec);
+// }
+
+// void input_spaces(Specifiers *spec, int spaces){
+//     s21_memset(spec->argv[spec->i_len], ' ', spaces);
+//     spec->argv[spec->i_len][spaces+1] = '\0';
+// }
+
+void is_negative(int num, int *spaces) {
+  if (num < 0.0) {
+    *spaces += 1;
+  }
+}
+
+void set_flags(const char *format, Specifiers *spec) {
+    char *tmp = (char *)format;
+    tmp++;
+    while(1){
+      if (*tmp == ' ') spec->space = true;
+      else if(*tmp == '0') spec->zero = true;
+      else if(*tmp == '-') spec->minus = true;
+      else if(*tmp == '+') spec->plus = true;
+      else{
+        spec->space = true;
+      }
+      tmp++;
+      if(s21_strchr("cdieEfgGosuxXpn", *tmp) || (is_digit(*tmp) && *tmp != '0') || *tmp == '.') break;
+    }
+    if(spec->minus && spec->zero){
+      spec->zero = 0;
+    }
+}
+
+void set_width(const char *format, va_list args, Specifiers *spec) {
+  char *tmp = (char *)format;
+  tmp++;
+  while(*tmp){
+    if((is_digit(*tmp) && *tmp != '0' )|| *tmp == '*'){
+      break;
+    }
+    tmp++;
+  }
+  if (*tmp == '*') {
+    spec->width = va_arg(args, int);
+  } else if(is_digit(*tmp)){
+    spec->width = parse_number(&tmp, 10, INT_MAX);
+  }
+}
+
+void set_precision(const char *format, va_list args, Specifiers *spec) {
+  char *tmp = (char *)format + 1;
+  while (!s21_strchr("cdfsu", *tmp)) {
+    if (*tmp == '.') {
+      tmp++;
+      if (*tmp == '*') {
+        spec->precision = va_arg(args, int);
+      } else {
+        spec->precision = parse_number(&tmp, 10, INT_MAX);
+      }
+      break;
+    }
+    tmp++;
+  }
+}
+
+void set_length(const char *format, Specifiers *spec) {
+  char *tmp = (char *)format;
+  while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
+    tmp++;
+  }
+  tmp--;
+  if (*tmp == 'h' || *tmp == 'l') {
+    spec->length = *tmp;
+  }
+}
+
+void process_c(va_list args, Specifiers *spec, char temp[BUFF]){
+    if(spec->length == 'l'){
+        wchar_t c = va_arg(args, wchar_t);
+        //пробелы минусы нули
+    }
+    else{
+        char c = va_arg(args, int);
+        //пробелы минусы нули
+    }
+}
+
+void getSTRINGfromNUM(int64_t num, int base, char tmp1[], Specifiers *spec){
     char tmp[BUFF] = "\0";
     int index = BUFF - 2;
     int temp = num;
@@ -29,156 +140,112 @@ void getNUMfromString(int num, int base, Specifiers* spec){
     if(temp < 0){
         tmp[--index] = '-';
     }
-    //поменять на свой
-    strcat(spec->argv[spec->i_len++], tmp+index);
-}
-void getFLOATfromString(double f, Specifiers *spec){
-    long double left = 0.0;
-    long double right = modfl(f, &left);
-    getNUMfromString((int)left, 10, spec);
-    spec->i_len--;
-    int count = 0;
-    while(count != 6){
-        right*=10;
-        count++;
+    if(spec->plus && spec->zero && temp > 0){
+      tmp[--index] = '+';
     }
-    strcat(spec->argv[spec->i_len], ".");
-    getNUMfromString((int)right, 10, spec);
+    s21_strncat(tmp1, tmp+index, s21_strlen(tmp+index));
 }
 
-void set_spaces(char *format, int *spaces, va_list args){
-    char *tmp = format;
+void getSTRING(char str1[BUFF], char str2[BUFF], Specifiers *spec, char c) {
+    int index = 0;
+    if (str2[0] == '-' && c == '0') {
+        str1[index++] = '-';
+    }
+    s21_size_t width = spec->width - s21_strlen(str2);
+    s21_strncpy(str1+index+width,str2+index, s21_strlen(str2+index));
+    if(spec->zero && spec->space && str2[0] != '-'){
+      str1[0] = ' ';
+    }
+    if(spec->zero && spec->plus && str2[0] != '-'){
+      str1[0] = '+';
+    }
+}
+
+void process_d(va_list args, Specifiers *spec, char str1[BUFF]){
+    int64_t d = va_arg(args, int64_t);
+    switch(spec->length){
+        case 0:
+            d = (int32_t)d;
+            break;
+        case 'h':
+            d = (int16_t)d;
+            break;
+    }
+    char number[BUFF] = "\0";
+    getSTRINGfromNUM(d, 10, number, spec);
+    bool condition = s21_strlen(number) < (s21_size_t)spec->width;
+    printf("zero = %d, space = %d, plus = %d width = %d\n", spec->zero, spec->space, spec->plus, spec->width);
+    if(spec->zero && condition){
+      getSTRING(str1, number, spec, '0');
+    }
+    else if(spec->minus && condition){
+      s21_memset(number+s21_strlen(number), ' ', spec->width-s21_strlen(number));
+      s21_strncpy(str1, number, s21_strlen(number));
+    }
+    else if(condition && spec->width != 0){
+      getSTRING(str1, number, spec, ' ');
+    }
+    else{
+      s21_strncat(str1, number, s21_strlen(number));
+    }
+}
+
+void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
+  char *tmp = (char *)format;
+  while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
     tmp++;
-    if(*(tmp) == '*'){
-        *spaces = va_arg(args, int);
-    }
-    else if(isdigit(*tmp) && *tmp++ != '.'){
-        while((s21_isdigit(*tmp))){
-            tmp--;
-        }
-        *spaces = s21_atoi(++tmp);
-    }
-}
-
-
-void input_spaces(Specifiers *spec, int spaces){
-    s21_memset(spec->argv[spec->i_len], ' ', spaces);
-    spec->argv[spec->i_len][spaces+1] = '\0';
-}
-
-void is_negative(int num, int *spaces){
-    if(num < 0.0){
-        *spaces += 1;
-    }
-}
-int getSpecFromLine(char *format, va_list args, Specifiers *spec){
-    bool flag = 1;
-    char *tmp = format;
-    int spaces = 0;
-    switch(*tmp){
-        case 'c':
-            spec->c = va_arg(args, int);
-            spec->argv[spec->i_len][0] = (char)spec->c;
-            spec->argv[spec->i_len++][1] = '\0';
-            break;
-        case 'd':
-            set_spaces(tmp, &spaces, args);
-            spec->d= va_arg(args, int);
-            is_negative(spec->d, &spaces);
-            getNUMfromString(spec->d, 10, spec);
-            break;
-        case 'f':
-            set_spaces(tmp, &spaces, args);
-            spec->f = va_arg(args, double);
-            getFLOATfromString(spec->f, spec);
-            break;
-        case 's':
-            spec->s = va_arg(args, char*);
-            strcpy(spec->argv[spec->i_len++], spec->s);
-            break;
-        case 'u':
-            set_spaces(tmp, &spaces, args);
-            spec->u = va_arg(args, unsigned int);
-            getNUMfromString(spec->u, 10, spec);
-
-            break;
-        default:
-            flag = 0;
-    }
-    return flag;
-}
-
-void getSpecFromFormat(const char *format, va_list args, Specifiers *spec){
-    char *tmp = (char *)format;
-    for(;*tmp++;){
-        if(getSpecFromLine(tmp, args, spec)){
-            break;
-        }
+  }
+  switch (*tmp) {
+    case 'c':
+        process_c(args, spec, str);
+        break;
+    case 'd':
+        process_d(args, spec, str);
+        printf("%s", str);
+        break;
+    case 'f':
+        break;
+    case 's':
+        break;
+    case 'u':
+        break;
     }
 }
 
-int count_spec(const char *format){
-    int count = 0;
-    for(s21_size_t i = 1; i < s21_strlen(format); i++){
-        if(format[i-1] == '%' && format[i] != '%'){
-            count++;
-        }
+void skip_spec_line(const char **format){
+  while(1){
+    *format+=1;
+    if(s21_strchr("cdieEfgGosuxXpn", **format)){
+      *format+=1;
+      break;
     }
-    return count;
+  }
 }
 
-// void praseArgs(const char *format, va_list args){
-//     for(;*format++;){
-//     }
+int s21_sprintf(char *str, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
 
-
-
-//     for(int i = 0; i < spec.len; i++){
-//         printf("%s = %lu\n", spec.argv[i], s21_strlen(spec.argv[i]));
-//     }
-
-//     freeArr(spec.argv, spec.len);
-// }
-
-
-//Подставить вместо спецификатора наш input
-// char *createNewString(char *str, const char *format, Specifiers spec){
-//     for(; *format++; str++){
-
-//     }
-// }
-
-//Спецификаторы PART 2: c d f s 
-//Ширина: (число)
-//Точность: .(xbckj)
-//Длина: h,l
-//* 5678d
-
-int s21_sprintf(char *str, const char *format, ...){
-    va_list args;
-    va_start(args, format);
-
+  while (*format) {
     char temp[BUFF] = "\0";
-    int spaces = 0;
-    for(;*format;){
-        if(*format == '%'){
-            set_spaces(format, &spaces, args);
-        }
+    Specifiers spec = {0};
+
+    if (*format == '%') {
+      set_flags(format, &spec);
+      set_width(format, args, &spec);
+      set_precision(format, args, &spec);
+      set_length(format, &spec);
+      set_spec(format, &spec, args, temp);
+      skip_spec_line(&format);
     }
-    va_end(args);
+    if(*format == '\0'){
+      break;
+    }
+    *str++ = *format++;
+  }
 
-    return 0;
+  va_end(args);
+
+  return 0;
 }
 
-
-int main() {
-    int age =  -20;
-    char str1[BUFF] = "\0";
-    s21_sprintf(str1, "Age = %d %u %5f", age, 20, 3.14);
-    //sprintf(str1, "%4d", age);
-    //printf("%s", str1);
-
-    
-    return 0;
-
-}
