@@ -11,3 +11,4 @@ Suite *suite_strchr(void);
 Suite *suite_strpbrk(void);
 Suite *suite_strncpy(void);
 Suite *suite_strncmp(void);
+Suite *suite_strtok(void);
