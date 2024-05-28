@@ -8,6 +8,12 @@ all: test
 test:
 	$(CLANG) $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) -o s21_test
+
+debug:
+	$(CLANG) $(SOURCE)
+	$(CC) -g $(CFLAGS) $(SOURCE) -o s21_test
+
+
 clean:
 	rm -f s21_test
 
