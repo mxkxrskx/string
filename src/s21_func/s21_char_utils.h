@@ -15,6 +15,7 @@ bool is_upper(char c);
 char to_lower(char c);
 bool is_hex(char c);
 
+bool is_space(char c);
 void skip_whitespace(char **ptr);
 
 int get_sign(char **ptr);

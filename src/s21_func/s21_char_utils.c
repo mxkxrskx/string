@@ -14,8 +14,13 @@ bool is_hex(char c) {
   return (c >= '0' && c <= '9') || (to_lower(c) >= 'a' && to_lower(c) <= 'f');
 }
 
+bool is_space(char c) {
+  return (c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' ||
+          c == '\r');
+}
+
 void skip_whitespace(char **ptr) {
-  while (**ptr == ' ')
+  while (is_space(**ptr))
     (*ptr)++;
 }
 
