@@ -35,8 +35,7 @@ char *s21_strncpy(char *dest, const char *src, s21_size_t n);
 int s21_sprintf(char *str, const char *format, ...);
 int s21_strncmp(const char *str1, const char *str2, s21_size_t n);
 char *s21_strtok(char *str, const char *delim);
-
-
+void *s21_to_lower(const char *str);
 
 
 #endif //PROJECT_S21_STRING_H
