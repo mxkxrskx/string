@@ -5,7 +5,7 @@ int main() {
                           suite_strerror(), suite_strlen(),  suite_strncat(),
                           suite_memset(),   suite_strchr(),  suite_strpbrk(),
                           suite_strncpy(),  suite_strncmp(), suite_strtok(),
-                          suite_to_lower()};
+                          suite_to_lower(), suite_to_upper()};
   for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
        i++) {
     run_test_cases(suite_array[i]);
