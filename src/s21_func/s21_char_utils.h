@@ -1,24 +1,20 @@
-#ifndef S21_CHAR_UTILS_H
-#define S21_CHAR_UTILS_H
+#ifndef CHAR_UTILS_H
+#define CHAR_UTILS_H
 
-#include <stdbool.h>
+#include "s21_string.h"
 
 #define BASE_UNKNOWN 0
 #define BASE_OCTAL 8
 #define BASE_DECIMAL 10
 #define BASE_HEX 16
 
-bool is_sign(char c);
-bool is_digit(char c);
-bool is_octal(char c);
-bool is_upper(char c);
-char to_lower(char c);
-bool is_hex(char c);
+bool s21_isdigit(char c);
+bool s21_isoctal(char c);
+bool s21_isupper(char c);
+char s21_tolower(char c);
+bool s21_ishex(char c);
 
-bool is_space(char c);
-void skip_whitespace(char **ptr);
+bool s21_isspace(char c);
+void skip_spaces(char **s);
 
-int get_sign(char **ptr);
-int get_base(char **ptr);
-
-#endif // S21_CHAR_UTILS_H
+#endif // CHAR_UTILS_H

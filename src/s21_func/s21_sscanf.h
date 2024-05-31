@@ -4,48 +4,67 @@
 #include "s21_parse_number.h"
 #include "s21_string.h"
 
-typedef enum { DEFAULT, SHORT_INT, LONG_INT, LONG_DOUBLE } s21_type;
+#define MAXLEN 100
 
-typedef struct s21_flags s21_flags;
+typedef enum { DEFAULT, SHORT_INT, LONG_INT, LONG_DOUBLE } LengthDescription;
+typedef enum { NO_ERROR, NULL_PTR, ASSIGN_ERROR, NO_COUNT } Error;
+typedef enum { SIGNED, UNSIGNED } Type;
 
-int get_len(char **format);
-s21_type get_type(char **format);
-bool get_asterisk(char **format);
-
-void fill_flags(char **ptr, s21_flags *flags);
-
-void skip_remain_len(char **ptr, char *ptr_start, size_t len);
-
-void assign_value_char(va_list args, char val, s21_flags flags);
-bool handle_char(char **ptr, va_list args, s21_flags flags);
-
-bool assign_value_signed_integer(va_list args, long double val, s21_flags flags,
-                                 int shift);
-bool handle_signed_integer(char **ptr, va_list args, int base, s21_flags flags);
-
-bool assign_value_float(va_list args, long double val, s21_flags flags,
-                        int shift);
-bool handle_float(char **ptr, va_list args, s21_flags flags);
-
-bool assign_value_unsigned_integer(va_list args, long double val,
-                                   s21_flags flags, int shift);
-bool handle_unsigned_integer(char **ptr, va_list args, int base,
-                             s21_flags flags);
-
-void assign_value_string(char **ptr, char *s, s21_flags flags);
-bool handle_string(char **ptr, va_list args, s21_flags flags);
-
-bool handle_pointer(char **ptr, va_list args, s21_flags flags);
-
-bool handle_percent(char **str, char **format);
-
-bool match_literal(char **ptr_format, char **ptr_str);
-
-bool handle_format_specifier(char **ptr_format, char **ptr_str, va_list args,
-                             s21_flags flags, int* count);
-
-int process_format_string(const char *str, const char *format, va_list args);
+typedef struct {
+  va_list *args;
+  long long width;
+  int suppress;
+  LengthDescription length;
+  int base;
+  Type type;
+  Error error;
+  const char *str_start;
+} ScanContext;
 
 int s21_sscanf(const char *str, const char *format, ...);
+int process_format_string(const char *str, const char *format, va_list *args);
 
-#endif // S21_SSCANF_H
+ScanContext init_scan_context(va_list *args, const char *str_start);
+void parse_format_specifier(char **str, ScanContext *ctx, char **format);
+bool match_literal(char **str, char **format);
+
+void parse_suppress(ScanContext *ctx, char **format);
+void parse_width(ScanContext *ctx, char **format);
+void parse_length_description(ScanContext *ctx, char **format);
+void parse_specifier(char **str, ScanContext *ctx, char **format);
+
+void handle_char_case(char **str, ScanContext *ctx);
+void handle_decimal_case(char **str, ScanContext *ctx);
+void handle_integer_case(char **str, ScanContext *ctx);
+void handle_float_case(char **str, ScanContext *ctx);
+void handle_octal_case(char **str, ScanContext *ctx);
+void handle_string_case(char **str, ScanContext *ctx);
+void handle_unsigned_case(char **str, ScanContext *ctx);
+void handle_hex_case(char **str, ScanContext *ctx);
+void handle_pointer_case(char **str, ScanContext *ctx);
+void handle_count_case(char **str, ScanContext *ctx);
+void handle_percent_case(char **str, ScanContext *ctx, char **format);
+
+void parse_char_specifier(char **str, ScanContext *ctx);
+void parse_decimal_specifier(char **str, ScanContext *ctx);
+void parse_float_specifier(char **str, ScanContext *ctx);
+void parse_string_specifier(char **str, ScanContext *ctx);
+void skip_percent(char **str, ScanContext *ctx, char **format);
+void set_count_specifier(char **str, ScanContext *ctx);
+
+char parse_char(char **str, ScanContext *ctx);
+long long parse_decimal_integer(char **str, ScanContext *ctx);
+long double parse_floating_point(char **str, ScanContext *ctx);
+
+void set_signed_value(long long decimal_integer, ScanContext *ctx);
+void set_unsigned_value(long long decimal_integer, ScanContext *ctx);
+
+int parse_fractional_part(char **str, ScanContext *ctx, long double *fraction);
+int parse_exponent_part(char **str, ScanContext *ctx, long double *exp_value);
+
+void s21_isnull(char **str, ScanContext *ctx);
+int parse_sign(char **str, ScanContext *ctx);
+int parse_base(char **str);
+int skip_base(char **str, int base);
+
+#endif /* S21_SSCANF_H */

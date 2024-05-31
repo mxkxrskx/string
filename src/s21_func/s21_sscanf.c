@@ -1,395 +1,482 @@
 #include "s21_sscanf.h"
 
-typedef struct s21_flags {
-  int len;
-  s21_type type;
-  bool asterisk;
-} s21_flags;
-
-int get_len(char **format) {
-  char *ptr_start = *format;
-  int n = parse_number(format, BASE_DECIMAL, INT_MAX);
-  if (*format - ptr_start == 0 || n == 0)
-    n = INT_MAX;
-  return n;
+int s21_sscanf(const char *str, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  int num_parsed = process_format_string(str, format, &args);
+  va_end(args);
+  return num_parsed;
 }
 
-s21_type get_type(char **format) {
-  s21_type type = DEFAULT;
-  switch (**format) {
+int process_format_string(const char *str, const char *format, va_list *args) {
+  char *s = (char *)str;
+  char *f = (char *)format;
+  int num_parsed = -1;
+  bool success = true;
+
+  while (*f && success) {
+    if (s21_isspace(*f)) {
+      skip_spaces(&s);
+      skip_spaces(&f);
+    } else if (*f == '%') {
+      f++;
+      ScanContext ctx = init_scan_context(args, str);
+      parse_format_specifier(&s, &ctx, &f);
+      if (num_parsed == -1 && ctx.error != NULL_PTR) {
+        num_parsed += 1;
+      }
+      num_parsed += (ctx.suppress || ctx.error != NO_ERROR) ? 0 : 1;
+      success = (ctx.error == NO_ERROR || ctx.error == NO_COUNT);
+    } else {
+      success = match_literal(&s, &f);
+    }
+  }
+  return num_parsed;
+}
+
+ScanContext init_scan_context(va_list *args, const char *str) {
+  ScanContext ctx;
+  ctx.args = args;
+  ctx.width = 0;
+  ctx.suppress = 0;
+  ctx.length = DEFAULT;
+  ctx.base = BASE_DECIMAL;
+  ctx.error = NO_ERROR;
+  ctx.type = SIGNED;
+  ctx.str_start = str;
+  return ctx;
+}
+
+void parse_format_specifier(char **str, ScanContext *ctx, char **f) {
+  parse_suppress(ctx, f);
+  parse_width(ctx, f);
+  parse_length_description(ctx, f);
+  parse_specifier(str, ctx, f);
+}
+
+bool match_literal(char **s, char **f) {
+  bool success = (**s == **f);
+  if (success) {
+    (*s)++;
+    (*f)++;
+  }
+  return success;
+}
+
+void parse_suppress(ScanContext *ctx, char **f) {
+  if (**f == '*') {
+    ctx->suppress = 1;
+    (*f)++;
+  }
+}
+
+void parse_width(ScanContext *ctx, char **f) {
+  ctx->width = 0;
+  parse_number(f, 10, &ctx->width, MAXLEN);
+  if (ctx->width == 0) {
+    ctx->width = MAXLEN;
+  }
+}
+
+void parse_length_description(ScanContext *ctx, char **f) {
+  switch (**f) {
   case 'h':
-    type = SHORT_INT;
-    (*format)++;
+    ctx->length = SHORT_INT;
+    (*f)++;
     break;
   case 'l':
-    type = LONG_INT;
-    (*format)++;
+    ctx->length = LONG_INT;
+    (*f)++;
     break;
   case 'L':
-    type = LONG_DOUBLE;
-    (*format)++;
+    ctx->length = LONG_DOUBLE;
+    (*f)++;
     break;
   }
-  return type;
 }
 
-bool get_asterisk(char **format) {
-  bool flag = true;
-  if (format && **format == '*')
-    (*format)++;
-  else
-    flag = false;
-  return flag;
-}
-
-void fill_flags(char **ptr, s21_flags *flags) {
-  flags->len = get_len(ptr);
-  flags->type = get_type(ptr);
-  flags->asterisk = get_asterisk(ptr);
-}
-
-void skip_remain_len(char **ptr, char *ptr_start, size_t len) {
-  if (ptr && *ptr) {
-    char *p = *ptr;
-    char *end = ptr_start + len;
-    while (p < end && *p != '\0' && len < INT_MAX) {
-      p++;
-    }
-    *ptr = p;
-  }
-}
-
-void assign_value_char(va_list args, char val, s21_flags flags) {
-  if (!flags.asterisk)
-    *va_arg(args, char *) = val;
-}
-
-bool handle_char(char **ptr, va_list args, s21_flags flags) {
-  bool flag = true;
-  if (**ptr) {
-    assign_value_char(args, **ptr, flags);
-    char *ptr_start = *ptr;
-    (*ptr)++;
-    skip_remain_len(ptr, ptr_start, flags.len);
-  } else
-    flag = false;
-  return flag;
-}
-
-bool assign_value_signed_integer(va_list args, long double val, s21_flags flags,
-                                 int shift) {
-  bool flag = true;
-  if (shift == 0)
-    flag = false;
-  else if (!flags.asterisk) {
-    switch (flags.type) {
-    case SHORT_INT:
-      if (val >= SHRT_MIN && val <= SHRT_MAX)
-        *va_arg(args, short int *) = (short int)val;
-      else
-        *va_arg(args, short int *) = -1;
-      break;
-    case LONG_INT:
-      if (val >= LONG_MIN && val <= LONG_MAX)
-        *va_arg(args, long int *) = (long int)val;
-      else
-        *va_arg(args, long int *) = -1;
-      break;
-    default:
-      if (val >= INT_MIN && val <= INT_MAX)
-        *va_arg(args, int *) = (int)val;
-      else
-        *va_arg(args, int *) = -1;
-      break;
-    }
-  }
-  return flag;
-}
-
-bool handle_signed_integer(char **ptr, va_list args, int base,
-                           s21_flags flags) {
-  skip_whitespace(ptr);
-  char *ptr_start = *ptr;
-  int sign = get_sign(ptr);
-
-  if (base == BASE_UNKNOWN)
-    base = get_base(ptr);
-
-  flags.len -= (*ptr - ptr_start);
-  ptr_start = *ptr;
-
-  long double val = sign * parse_number(ptr, base, flags.len);
-
-  bool flag = assign_value_signed_integer(args, val, flags, *ptr - ptr_start);
-
-  return flag;
-}
-
-bool assign_value_float(va_list args, long double val, s21_flags flags,
-                        int shift) {
-  bool flag = true;
-  if (shift == 0)
-    flag = false;
-  else if (!flags.asterisk) {
-    switch (flags.type) {
-    case LONG_DOUBLE:
-      *va_arg(args, long double *) = (long double)val;
-      break;
-    default:
-      *va_arg(args, float *) = (float)val;
-      break;
-    }
-  }
-  return flag;
-}
-
-bool handle_float(char **ptr, va_list args, s21_flags flags) {
-  skip_whitespace(ptr);
-  char *ptr_num_start = *ptr;
-  int sign = get_sign(ptr);
-  int len = flags.len;
-
-  len -= (*ptr - ptr_num_start);
-  ptr_num_start = *ptr;
-
-  long double mantissa = parse_number(ptr, BASE_DECIMAL, len);
-  len -= *ptr - ptr_num_start;
-  
-  if (**ptr == '.' && len > 0) {
-    (*ptr)++;
-    len--;
-    char *ptr_point_start = *ptr;
-    long double decimal_digits = parse_number(ptr, BASE_DECIMAL, len);
-    int decimal_exp = *ptr - ptr_point_start;
-    len -= decimal_exp;
-    mantissa += decimal_digits * pow(10.0, -decimal_exp);
-  }
-
-
-  if (*ptr - ptr_num_start == 0 || (*(*ptr - 1) == '.' && *ptr - ptr_num_start == 1))
-    return false;
-
-  int exponent = 0;
-  if ((**ptr == 'e' || **ptr == 'E') && len > 0) {
-    char *temp_ptr = *ptr;
-    (*ptr)++;
-
-    int sign_e = get_sign(ptr);
-    len -= *ptr - temp_ptr;
-    char *ptr_point_start = *ptr;
-    long double number_e = parse_number(ptr, BASE_DECIMAL, len);
-    if (*ptr - ptr_point_start > 0)
-      exponent = sign_e * number_e;
-    else
-      *ptr = temp_ptr;
-  }
-
-  long double val = mantissa * pow(10.0, exponent) * sign;
-
-  bool flag = assign_value_float(args, val, flags, *ptr - ptr_num_start);
-
-  return flag;
-}
-
-bool assign_value_unsigned_integer(va_list args, long double val,
-                                   s21_flags flags, int shift) {
-  bool flag = true;
-  if (shift == 0)
-    flag = false;
-  else if (!flags.asterisk) {
-    switch (flags.type) {
-    case SHORT_INT:
-      if (val >= 0 && val <= USHRT_MAX)
-        *va_arg(args, unsigned short int *) = (unsigned short int)val;
-      else
-        *va_arg(args, unsigned short int *) = -1;
-      break;
-    case LONG_INT:
-      if (val >= 0 && val <= ULONG_MAX)
-        *va_arg(args, unsigned long int *) = (unsigned long int)val;
-      else
-        *va_arg(args, unsigned long int *) = -1;
-      break;
-    default:
-      if (val >= 0 && val <= UINT_MAX)
-        *va_arg(args, unsigned int *) = (unsigned int)val;
-      else
-        *va_arg(args, unsigned int *) = -1;
-      break;
-    }
-  }
-  return flag;
-}
-
-bool handle_unsigned_integer(char **ptr, va_list args, int base,
-                             s21_flags flags) {
-  skip_whitespace(ptr);
-  get_sign(ptr);
-  char *ptr_start = *ptr;
-  get_base(ptr);
-  long double val = parse_number(ptr, base, flags.len);
-  bool flag = assign_value_unsigned_integer(args, val, flags, *ptr - ptr_start);
-  return flag;
-}
-
-void assign_value_string(char **ptr, char *s, s21_flags flags) {
-  char *ptr_start = *ptr;
-  bool space = false;
-  while (**ptr && *ptr - ptr_start < flags.len && !space) {
-    if (is_space(**ptr)) {
-      space = true;
-    } else if (!flags.asterisk) {
-      *s = **ptr;
-      s++;
-    }
-    (*ptr)++;
-  }
-  if (!flags.asterisk) {
-    *s = '\0';
-  }
-}
-
-bool handle_string(char **ptr, va_list args, s21_flags flags) {
-  bool flag = true;
-  if (**ptr) {
-    char *s = va_arg(args, char *);
-    assign_value_string(ptr, s, flags);
-  } else
-    flag = false;
-  return flag;
-}
-
-bool handle_pointer(char **ptr, va_list args, s21_flags flags) {
-  skip_whitespace(ptr);
-  bool flag = true;
-  char *ptr_start = *ptr;
-  get_base(ptr);
-  unsigned long num = 0;
-  bool is_overflow = false;
-  while (**ptr && *ptr - ptr_start < flags.len && is_hex(**ptr)) {
-    int c = tolower((unsigned char)**ptr);
-    int digit = isdigit(c) ? c - '0' : c - 'a' + 10;
-    if (num * BASE_HEX + digit > ULONG_MAX / BASE_HEX)
-      is_overflow = true;
-    else
-      num = num * BASE_HEX + digit;
-    (*ptr)++;
-  }
-  if (is_overflow)
-    num = ULONG_MAX;
-  if (*ptr - ptr_start == 0)
-    flag = false;
-  else if (!flags.asterisk)
-    *va_arg(args, unsigned long *) = num;
-  return flag;
-}
-
-bool handle_percent(char **str, char **format) {
-  bool flag = true;
-  if (**str != '%')
-    flag = false;
-  else
-    (*str)++;
-  return flag;
-}
-
-bool handle_format_specifier(char **ptr_format, char **ptr_str, va_list args,
-                             s21_flags flags, int* count) {
-  bool success = false;
-  switch (**ptr_format) {
+void parse_specifier(char **str, ScanContext *ctx, char **f) {
+  switch (**f) {
   case 'c':
-    success = handle_char(ptr_str, args, flags);
+    handle_char_case(str, ctx);
     break;
   case 'd':
-    success = handle_signed_integer(ptr_str, args, BASE_DECIMAL, flags);
+    handle_decimal_case(str, ctx);
     break;
   case 'i':
-    success = handle_signed_integer(ptr_str, args, BASE_UNKNOWN, flags);
+    handle_integer_case(str, ctx);
     break;
   case 'e':
   case 'E':
   case 'f':
   case 'g':
   case 'G':
-    success = handle_float(ptr_str, args, flags);
+    handle_float_case(str, ctx);
     break;
   case 'o':
-    success = handle_signed_integer(ptr_str, args, BASE_OCTAL, flags);
+    handle_octal_case(str, ctx);
+    break;
+  case 's':
+    handle_string_case(str, ctx);
     break;
   case 'u':
-    success = handle_signed_integer(ptr_str, args, BASE_DECIMAL, flags);
+    handle_unsigned_case(str, ctx);
     break;
   case 'x':
   case 'X':
-    success = handle_signed_integer(ptr_str, args, BASE_HEX, flags);
-    break;
-  case 's':
-    success = handle_string(ptr_str, args, flags);
+    handle_hex_case(str, ctx);
     break;
   case 'p':
-    success = handle_pointer(ptr_str, args, flags);
+    handle_pointer_case(str, ctx);
+    break;
+  case 'n':
+    handle_count_case(str, ctx);
     break;
   case '%':
-    success = handle_percent(ptr_str, ptr_format);
-    break;
-  default:
-    success = false;
+    handle_percent_case(str, ctx, f);
     break;
   }
-  if (success) {
-    if (!flags.asterisk && **ptr_format != '%')
-      (*count)++;
-    (*ptr_format)++;
-  }
-  return success;
+  (*f)++;
 }
 
-bool match_literal(char **ptr_format, char **ptr_str) {
-  bool flag = true;
-  if (**ptr_format != **ptr_str)
-    flag = false;
-  else {
-    (*ptr_format)++;
-    (*ptr_str)++;
-  }
-  return flag;
+void handle_char_case(char **str, ScanContext *ctx) {
+  parse_char_specifier(str, ctx);
 }
 
-int process_format_string(const char *str, const char *format, va_list args) {
-  char *ptr_str = (char *)str;
-  char *ptr_format = (char *)format;
+void handle_decimal_case(char **str, ScanContext *ctx) {
+  parse_decimal_specifier(str, ctx);
+}
 
-  int count = 0;
-  bool success = true;
+void handle_integer_case(char **str, ScanContext *ctx) {
+  ctx->base = BASE_UNKNOWN;
+  parse_decimal_specifier(str, ctx);
+}
 
-  while (*ptr_format && *ptr_str && success) {
-    if (*ptr_format == '%') {
-      ptr_format++;
+void handle_float_case(char **str, ScanContext *ctx) {
+  parse_float_specifier(str, ctx);
+}
 
-      s21_flags flags = {};
-      fill_flags(&ptr_format, &flags);
+void handle_octal_case(char **str, ScanContext *ctx) {
+  ctx->base = BASE_OCTAL;
+  ctx->type = UNSIGNED;
+  parse_decimal_specifier(str, ctx);
+}
 
-      if (flags.type != DEFAULT && flags.asterisk)
-        success = false;
-      else
-        success = handle_format_specifier(&ptr_format, &ptr_str, args, flags, &count);
+void handle_string_case(char **str, ScanContext *ctx) {
+  parse_string_specifier(str, ctx);
+}
 
-    } else if (is_space(*ptr_format)) {
-      skip_whitespace(&ptr_str);
-      skip_whitespace(&ptr_format);
-    } else {
-      success = match_literal(&ptr_format, &ptr_str);
+void handle_unsigned_case(char **str, ScanContext *ctx) {
+  ctx->type = UNSIGNED;
+  parse_decimal_specifier(str, ctx);
+}
+
+void handle_hex_case(char **str, ScanContext *ctx) {
+  ctx->base = BASE_HEX;
+  ctx->type = UNSIGNED;
+  parse_decimal_specifier(str, ctx);
+}
+
+void handle_pointer_case(char **str, ScanContext *ctx) {
+  ctx->base = BASE_HEX;
+  ctx->type = UNSIGNED;
+  ctx->length = LONG_INT;
+  parse_decimal_specifier(str, ctx);
+}
+
+void handle_count_case(char **str, ScanContext *ctx) {
+  set_count_specifier(str, ctx);
+}
+
+void handle_percent_case(char **str, ScanContext *ctx, char **f) {
+  skip_percent(str, ctx, f);
+}
+
+void parse_char_specifier(char **str, ScanContext *ctx) {
+  char c = parse_char(str, ctx);
+  if (!ctx->suppress && ctx->error == NO_ERROR) {
+    *va_arg(*ctx->args, char *) = c;
+  }
+}
+
+void parse_decimal_specifier(char **str, ScanContext *ctx) {
+  long long decimal_integer = parse_decimal_integer(str, ctx);
+
+  if (!ctx->suppress && ctx->error == NO_ERROR) {
+    if (ctx->type == SIGNED) {
+      set_signed_value(decimal_integer, ctx);
+    } else if (ctx->type == UNSIGNED) {
+      set_unsigned_value(decimal_integer, ctx);
     }
   }
-  return count;
 }
 
-int s21_sscanf(const char *str, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
+void parse_float_specifier(char **str, ScanContext *ctx) {
+  long double floating_point = parse_floating_point(str, ctx);
+  if (!ctx->suppress && ctx->error == NO_ERROR) {
+    switch (ctx->length) {
+    case LONG_DOUBLE:
+      *va_arg(*ctx->args, long double *) = (long double)floating_point;
+      break;
+    default:
+      *va_arg(*ctx->args, float *) = (float)floating_point;
+      break;
+    }
+  }
+}
 
-  int count = process_format_string(str, format, args);
+void parse_string_specifier(char **str, ScanContext *ctx) {
+  skip_spaces(str);
+  s21_isnull(str, ctx);
 
-  va_end(args);
-  return count;
+  if (ctx->error == NO_ERROR) {
+
+    char *start_ptr = *str;
+    char *destination;
+    if (!ctx->suppress) {
+      destination = va_arg(*ctx->args, char *);
+    }
+    bool space_encountered = false;
+
+    while (**str && *str - start_ptr < ctx->width && !space_encountered) {
+      if (s21_isspace(**str)) {
+        space_encountered = true;
+      } else if (!ctx->suppress) {
+        *destination = **str;
+        destination++;
+      }
+      (*str)++;
+    }
+
+    if (!ctx->suppress) {
+      *destination = '\0';
+    }
+
+    if (start_ptr == *str) {
+      ctx->error = ASSIGN_ERROR;
+    }
+  }
+}
+
+void skip_percent(char **str, ScanContext *ctx, char **f) {
+  skip_spaces(str);
+  s21_isnull(str, ctx);
+  if (ctx->error == NO_ERROR) {
+    if (**str != '%') {
+      ctx->error = NULL_PTR;
+    } else {
+      ctx->error = NO_COUNT;
+      (*str)++;
+    }
+  }
+}
+
+void set_count_specifier(char **str, ScanContext *ctx) {
+  *va_arg(*ctx->args, int *) = *str - ctx->str_start;
+  ctx->error = NO_COUNT;
+}
+
+char parse_char(char **str, ScanContext *ctx) {
+  s21_isnull(str, ctx);
+  char c = '\0';
+  if (ctx->error == NO_ERROR) {
+    c = **str;
+    (*str)++;
+  }
+  return c;
+}
+
+long long parse_decimal_integer(char **str, ScanContext *ctx) {
+  skip_spaces(str);
+  s21_isnull(str, ctx);
+  long long num = 0;
+
+  if (ctx->error == NO_ERROR) {
+    int sign = parse_sign(str, ctx);
+
+    if (ctx->width > 1) {
+      int base = parse_base(str);
+      if (ctx->base == BASE_UNKNOWN) {
+        ctx->base = base;
+      }
+    } else if (ctx->base == BASE_UNKNOWN) {
+      ctx->base = BASE_DECIMAL;
+    }
+
+    int shift = skip_base(str, ctx->base);
+
+    ctx->width -= shift;
+
+    int parsed = parse_number(str, ctx->base, &num, ctx->width);
+
+    if (parsed == -1) {
+      if (ctx->type == SIGNED)
+        num = sign == 1 ? LONG_MAX : LONG_MIN;
+      else
+        num = ULONG_MAX;
+    } else if (parsed + shift == 0) {
+      ctx->error = ASSIGN_ERROR;
+    }
+
+    if (num != -1) {
+      num = sign * num;
+    }
+  }
+
+  return num;
+}
+
+long double parse_floating_point(char **str, ScanContext *ctx) {
+  long double result = 0.0;
+  skip_spaces(str);
+  s21_isnull(str, ctx);
+
+  if (ctx->error == NO_ERROR) {
+    char *initial_position = *str;
+    int integer_length = 0;
+    int fractional_length = 0;
+    int sign = parse_sign(str, ctx);
+
+    long long integer_part = 0;
+    integer_length = parse_number(str, 10, &integer_part, ctx->width);
+
+    if (integer_length != -1) {
+      ctx->width -= integer_length;
+      result = integer_part;
+
+      if (ctx->width > 0 && **str == '.') {
+        (*str)++;
+        ctx->width -= 1;
+        long double fractional_part = 0.0;
+        fractional_length = parse_fractional_part(str, ctx, &fractional_part);
+        result += fractional_part;
+      }
+
+      if (ctx->width > 0 && (**str == 'e' || **str == 'E')) {
+        (*str)++;
+        ctx->width -= 1;
+        long double exponent_value = 0.0;
+        int exponent_length = parse_exponent_part(str, ctx, &exponent_value);
+        result *= exponent_value;
+        if (exponent_length < 1) {
+          (*str)--;
+        }
+      }
+
+      result *= sign;
+    } else {
+      ctx->error = ASSIGN_ERROR;
+    }
+
+    if (*str - initial_position == 0 ||
+        integer_length + fractional_length == 0) {
+      ctx->error = ASSIGN_ERROR;
+    }
+  }
+
+  return result;
+}
+
+void set_signed_value(long long decimal_integer, ScanContext *ctx) {
+  switch (ctx->length) {
+  case SHORT_INT:
+    *va_arg(*ctx->args, short int *) = (short int)decimal_integer;
+    break;
+  case LONG_INT:
+    *va_arg(*ctx->args, long int *) = (long int)decimal_integer;
+    break;
+  default:
+    *va_arg(*ctx->args, int *) = (int)decimal_integer;
+    break;
+  }
+}
+
+void set_unsigned_value(long long decimal_integer, ScanContext *ctx) {
+  switch (ctx->length) {
+  case SHORT_INT:
+    *va_arg(*ctx->args, unsigned short *) = (unsigned short)decimal_integer;
+    break;
+  case LONG_INT:
+    *va_arg(*ctx->args, unsigned long *) = (unsigned long)decimal_integer;
+    break;
+  default:
+    *va_arg(*ctx->args, unsigned int *) = (unsigned int)decimal_integer;
+    break;
+  }
+}
+
+int parse_fractional_part(char **str, ScanContext *ctx, long double *fraction) {
+  *fraction = 0.0;
+  long long fractional_part = 0;
+  int parsed_length = parse_number(str, 10, &fractional_part, ctx->width);
+
+  if (parsed_length != -1) {
+    ctx->width -= parsed_length;
+    *fraction = fractional_part / pow(10.0, parsed_length);
+  } else {
+    ctx->error = ASSIGN_ERROR;
+  }
+  return parsed_length;
+}
+
+int parse_exponent_part(char **str, ScanContext *ctx, long double *exponent) {
+  *exponent = 1.0;
+  int sign = parse_sign(str, ctx);
+  long long exponent_value = 0;
+  int parsed_length = parse_number(str, 10, &exponent_value, ctx->width);
+
+  if (parsed_length != -1) {
+    ctx->width -= parsed_length;
+    *exponent = pow(10.0, sign * exponent_value);
+  } else {
+    ctx->error = ASSIGN_ERROR;
+  }
+  return parsed_length;
+}
+
+void s21_isnull(char **str, ScanContext *ctx) {
+  if (*str == NULL || **str == '\0') {
+    ctx->error = NULL_PTR;
+  }
+}
+
+int parse_sign(char **str, ScanContext *ctx) {
+  int sign = (**str == '-') ? -1 : 1;
+  if (**str == '-' || **str == '+') {
+    (*str)++;
+    ctx->width--;
+  }
+  return sign;
+}
+
+int parse_base(char **str) {
+  int base = BASE_DECIMAL;
+  if (**str == '0') {
+    if ((*str)[1] == 'x' || (*str)[1] == 'X') {
+      base = BASE_HEX;
+    } else {
+      base = BASE_OCTAL;
+    }
+  } else if (s21_isdigit(**str)) {
+    base = BASE_DECIMAL;
+  }
+  return base;
+}
+
+int skip_base(char **str, int base) {
+  int shift = 0;
+  switch (base) {
+  case BASE_OCTAL:
+    if (**str == '0') {
+      shift = 1;
+    }
+    break;
+  case BASE_HEX:
+    if (**str == '0' && ((*str)[1] == 'x' || (*str)[1] == 'X')) {
+      shift = 2;
+    }
+    break;
+  }
+  *str += shift;
+  return shift;
 }
