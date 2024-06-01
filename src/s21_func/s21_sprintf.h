@@ -12,6 +12,7 @@ typedef struct Specifiers {
   char length;
   int width;
   int precision;
+  char specifier;
 
 
 } Specifiers;
