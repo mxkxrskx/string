@@ -3,15 +3,12 @@
 //static int count = 0;
 
 int main() {
-  Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s()};
+  Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f()};
   for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
        i++) {
     run_testcase(suite_array[i]);
     printf("\n");
   }
-  // char str[BUFF] = "\0";
-  // s21_sprintf(str, "%s", "SCHOOL21");
-  // printf("%s", str);
 
   return 0;
 }
@@ -23,21 +20,6 @@ void run_testcase(Suite *testcase){
 
   srunner_free(sr);  
 }
-
-// void getFLOATfromString(double f, Specifiers *spec){
-//     long double left = 0.0;
-//     long double right = modfl(f, &left);
-//     getNUMfromString((int)left, 10, spec);
-//     spec->i_len--;
-//     int count = 0;
-//     while(count != 6){
-//         right*=10;
-//         count++;
-//     }
-//     strcat(spec->argv[spec->i_len], ".");
-//     getNUMfromString((int)right, 10, spec);
-// }
-
 
 void set_flags(const char *format, Specifiers *spec) {
     char *tmp = (char *)format;
@@ -107,7 +89,7 @@ void set_length(const char *format, Specifiers *spec) {
 
 void process_line_with_condition(char str1[BUFF], char str2[BUFF], Specifiers *spec){
   int width = spec->width - s21_strlen(str2);
-  if(spec->zero && width > 0 && spec->precision == 0){
+  if(spec->zero && width > 0){
     getSTRING(str1, str2, '0', width);
   }
   else if(spec->minus && width > 0){
@@ -164,10 +146,10 @@ void getSTRINGfromNUM(int64_t num, int base, char tmp1[BUFF], Specifiers *spec){
         precision--;
       }
     }
-    if(temp < 0 && spec->specifier == 'd'){
+    if(temp < 0 && spec->specifier != 'u'){
         tmp[--index] = '-';
     }
-    if(spec->plus && spec->zero == 0 && temp >= 0 && spec->specifier == 'd'){
+    if(spec->plus && spec->zero == 0 && temp >= 0 && spec->specifier != 'u'){
       tmp[--index] = '+';
     }
     s21_strncat(tmp1, tmp+index, s21_strlen(tmp+index));
@@ -272,6 +254,51 @@ void process_s(va_list args, Specifiers *spec, char str[BUFF]){
   }
 }
 
+void getSTRINGfromFLOAT(long double f, Specifiers *spec, char str[BUFF]){
+    long double left = 0.0;
+    long double right = modfl(f, &left);
+    getSTRINGfromNUM((int64_t)left, 10, str, spec);
+    str[s21_strlen(str)] = '.';
+    char frac_part[BUFF] = "\0";
+    for(int i = 0; i < spec->precision; i++){
+      right *= 10;
+      int frac_digit = (int)right;
+      frac_part[i] = frac_digit + '0';
+      right -= frac_digit;
+    }
+    s21_strncat(str, frac_part, s21_strlen(frac_part));
+}
+
+void process_f(va_list args, Specifiers *spec, char str[BUFF]){
+  spec->specifier = 'f';
+  long double f = 0.0;
+  if(spec->length == 'L'){
+    f = va_arg(args, long double);
+  }
+  else{
+    f = va_arg(args, double);
+  }
+  if(spec->precision == 0){
+    spec->precision = 6;
+  }
+  char number[BUFF] = "\0";
+  getSTRINGfromFLOAT(f, spec, number);
+  if(number[0] != '-' && spec->space == 1 && spec->minus == 1){
+    str[0] = ' ';
+    str++;
+  }
+  if(spec->space == 1 && number[0] == '-'){
+    spec->space = 0;
+  }
+  process_line_with_condition(str, number, spec);
+  if(spec->zero && spec->space && number[0] != '-'){
+    str[0] = ' ';
+  }
+  if(spec->zero && spec->plus && number[0] != '-'){
+    str[0] = '+';
+  }
+}
+
 void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
   char *tmp = (char *)format;
   while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
@@ -285,6 +312,7 @@ void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF
         process_d(args, spec, str);
         break;
     case 'f':
+        process_f(args, spec, str);
         break;
     case 's':
         process_s(args, spec, str);
