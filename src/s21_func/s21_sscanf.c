@@ -1,4 +1,5 @@
 #include "s21_sscanf.h"
+#include "s21_string.h"
 
 int s21_sscanf(const char *str, const char *format, ...) {
   va_list args;
@@ -133,7 +134,7 @@ void parse_specifier(char **str, ScanContext *ctx, char **f) {
     handle_count_case(str, ctx);
     break;
   case '%':
-    handle_percent_case(str, ctx, f);
+    handle_percent_case(str, ctx);
     break;
   }
   (*f)++;
@@ -188,8 +189,8 @@ void handle_count_case(char **str, ScanContext *ctx) {
   set_count_specifier(str, ctx);
 }
 
-void handle_percent_case(char **str, ScanContext *ctx, char **f) {
-  skip_percent(str, ctx, f);
+void handle_percent_case(char **str, ScanContext *ctx) {
+  skip_percent(str, ctx);
 }
 
 void parse_char_specifier(char **str, ScanContext *ctx) {
@@ -258,7 +259,7 @@ void parse_string_specifier(char **str, ScanContext *ctx) {
   }
 }
 
-void skip_percent(char **str, ScanContext *ctx, char **f) {
+void skip_percent(char **str, ScanContext *ctx) {
   skip_spaces(str);
   s21_isnull(str, ctx);
   if (ctx->error == NO_ERROR) {

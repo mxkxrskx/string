@@ -35,8 +35,6 @@ char *s21_strpbrk(const char *str1, const char *str2);
 
 int s21_sprintf(char *str, const char *format, ...);
 
-
-
-
+int s21_sscanf(const char *str, const char *format, ...);
 
 #endif //PROJECT_S21_STRING_H

@@ -43,13 +43,13 @@ void handle_unsigned_case(char **str, ScanContext *ctx);
 void handle_hex_case(char **str, ScanContext *ctx);
 void handle_pointer_case(char **str, ScanContext *ctx);
 void handle_count_case(char **str, ScanContext *ctx);
-void handle_percent_case(char **str, ScanContext *ctx, char **format);
+void handle_percent_case(char **str, ScanContext *ctx);
 
 void parse_char_specifier(char **str, ScanContext *ctx);
 void parse_decimal_specifier(char **str, ScanContext *ctx);
 void parse_float_specifier(char **str, ScanContext *ctx);
 void parse_string_specifier(char **str, ScanContext *ctx);
-void skip_percent(char **str, ScanContext *ctx, char **format);
+void skip_percent(char **str, ScanContext *ctx);
 void set_count_specifier(char **str, ScanContext *ctx);
 
 char parse_char(char **str, ScanContext *ctx);
