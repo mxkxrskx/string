@@ -1,13 +1,14 @@
 #include "s21_string.h"
 
 void *s21_to_lower(const char *str) {
-  char *res = calloc(s21_strlen(str) + 1, 1);
+  char *res = (char *)str;
 
-  for (s21_size_t i = 0; i < s21_strlen(str); i++) {
-    if (str[i] >= 'A' && str[i] <= 'Z') {
-      res[i] = str[i] + 32;
-    } else {
-      res[i] = str[i];
+  if (str) {
+    s21_size_t len = s21_strlen(str);
+
+    for (s21_size_t i = 0; i < len; i++) {
+      if (res[i] >= 'A' && res[i] <= 'Z')
+        res[i] += 'a' - 'A';
     }
   }
   return res;

@@ -1,38 +1,32 @@
 #include "s21_string_test.h"
 
 START_TEST(normal_line) {
-  void *ptr = s21_to_upper("HellO WOoRld");
-  ck_assert_msg(s21_memcmp(ptr, "HELLO WOORLD", s21_strlen("HELLO WOORLD")) ==
-                    0,
-                "FAIL! Test normal line, \"HellO WooRld\" != \"HELLO WOORLD\"");
+  char str[] = "HellO WOoRld";
+  ck_assert_str_eq((char *)s21_to_upper(str), "HELLO WOORLD");
 }
 END_TEST
 
 START_TEST(empty_line) {
-  void *ptr = s21_to_upper("");
-  ck_assert_msg(s21_memcmp(ptr, "", 0) == 0,
-                "FAIL! Test empty line, \"\" != \"\"");
+  char str[] = "";
+  ck_assert_str_eq((char *)s21_to_upper(str), "");
 }
 END_TEST
 
 START_TEST(all_top) {
-  void *ptr = s21_to_upper("HELLO WORLD");
-  ck_assert_msg(s21_memcmp(ptr, "HELLO WORLD", s21_strlen("HELLO WORLD")) == 0,
-                "FAIL! Test all top, \"HELLO WORLD\" != \"HELLO WORLD\"");
+  char str[] = "HELLO WORLD";
+  ck_assert_str_eq((char *)s21_to_upper(str), "HELLO WORLD");
 }
 END_TEST
 
 START_TEST(all_lower) {
-  void *ptr = s21_to_upper("hello world");
-  ck_assert_msg(s21_memcmp(ptr, "HELLO WORLD", s21_strlen("HELLO WORLD")) == 0,
-                "FAIL! Test all lower, \"HELLO WORLD\" != \"HELLO WORLD\"");
+  char str[] = "hello world";
+  ck_assert_str_eq((char *)s21_to_upper(str), "HELLO WORLD");
 }
 END_TEST
 
 START_TEST(non_alphabet) {
-  void *ptr = s21_to_upper("1234@#$");
-  ck_assert_msg(s21_memcmp(ptr, "", 0) == 0,
-                "FAIL! Test non alphabet, \"1234@#$\" != \"1234@#$\"");
+  char str[] = "1234!@#";
+  ck_assert_str_eq((char *)s21_to_upper(str), "1234!@#");
 }
 END_TEST
 
