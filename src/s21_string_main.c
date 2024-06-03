@@ -1,11 +1,11 @@
 #include "testFunc/s21_string_test.h"
 
 int main() {
-  Suite *suite_array[] = {suite_memchr(),   suite_memcmp(),  suite_memcpy(),
-                          suite_strerror(), suite_strlen(),  suite_strncat(),
-                          suite_memset(),   suite_strchr(),  suite_strpbrk(),
-                          suite_strncpy(),  suite_strncmp(), suite_strtok(),
-                          suite_to_lower(), suite_to_upper()};
+  Suite *suite_array[] = {
+      suite_memchr(),   suite_memcmp(),   suite_memcpy(),  suite_strerror(),
+      suite_strlen(),   suite_strncat(),  suite_memset(),  suite_strchr(),
+      suite_strpbrk(),  suite_strncpy(),  suite_strncmp(), suite_strtok(),
+      suite_to_lower(), suite_to_upper(), suite_trim(),    suite_insert()};
   for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
        i++) {
     run_test_cases(suite_array[i]);
