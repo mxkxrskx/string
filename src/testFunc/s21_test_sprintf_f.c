@@ -1,143 +1,116 @@
 #include "s21_string_test.h"
 
-START_TEST(f_normal){
+void testing_sprinf_f(const char*format, double x){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
-    double x = 0;
-    sprintf(original, "%f", x);
-    s21_sprintf(s21, "%f", x);
+    sprintf(original, format, x);
+    s21_sprintf(s21, format, x);
+    ck_assert_int_eq(sprintf(original, format, x), s21_sprintf(s21, format, x));
     ck_assert_str_eq(original, s21);
+}
+
+START_TEST(f_normal){
+    testing_sprinf_f("%f", 0.0);
 }
 END_TEST
 
 START_TEST(f_flag_1){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 0;
-    sprintf(original, "%+f", x);
-    s21_sprintf(s21, "%+f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%+f", 0.0);
 }
 END_TEST
 
 START_TEST(f_flag_2){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "%010f", x);
-    s21_sprintf(s21, "%010f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%010f", 52.0);
 }
 END_TEST
 
 START_TEST(f_flag_3){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "% +10f", x);
-    s21_sprintf(s21, "% +10f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% +10f", 52.0);
 }
 END_TEST
 
 START_TEST(f_flag_4){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "% -52f", x);
-    s21_sprintf(s21, "% -52f", x);
-    ck_assert_str_eq(original, s21);
-}
-END_TEST
-
-START_TEST(f_flag_7){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = -52;
-    sprintf(original, "% -04f", x);
-    s21_sprintf(s21, "% -04f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% -52f", 234.0);
 }
 END_TEST
 
 START_TEST(f_flag_5){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "%+010f", x);
-    s21_sprintf(s21, "%+010f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%+010f", 234.3232);
 }
 END_TEST
 
 START_TEST(f_flag_6){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "% +010f", x);
-    s21_sprintf(s21, "% +010f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% +010f", 52.435435435);
 }
 END_TEST
 
+START_TEST(f_flag_7){
+    testing_sprinf_f("% -04f", -52.99999);
+}
+END_TEST
 
 START_TEST(f_flag_8){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "% -+010f", x);
-    s21_sprintf(s21, "% -+010f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% -+010f", 52.0);
 }
 END_TEST
 
 START_TEST(f_flag_9){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = -52;
-    sprintf(original, "% 10f", x);
-    s21_sprintf(s21, "% 10f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% 10f", -52.5315);
 }
 END_TEST
 
 START_TEST(f_flag_precision_1){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = -52;
-    sprintf(original, "%10.5f", x);
-    s21_sprintf(s21, "%10.5f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%10.5f", -52.666666666);
 }
 END_TEST
 
 START_TEST(f_flag_precision_2){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = -52;
-    sprintf(original, "%-10.5f", x);
-    s21_sprintf(s21, "%-10.5f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%-10.5f", -52.0);
 }
 END_TEST
 
 START_TEST(f_flag_precision_3){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = -52;
-    sprintf(original, "%-010.5f", x);
-    s21_sprintf(s21, "%-010.5f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("%-010.5f", -52.0);
 }
 END_TEST
 
 START_TEST(f_flag_precision_4){
-    char original[BUFF] = "\0";
-    char s21[BUFF] = "\0";
-    double x = 52;
-    sprintf(original, "% -+10.5f", x);
-    s21_sprintf(s21, "% -+10.5f", x);
-    ck_assert_str_eq(original, s21);
+    testing_sprinf_f("% -+10.5f", 52.9999999);
+}
+END_TEST
+
+START_TEST(f_negative){
+    testing_sprinf_f("%f", -10.5);
+}
+END_TEST
+
+START_TEST(f_large_number){
+    testing_sprinf_f("%f", 1234567890.123);
+}
+END_TEST
+
+START_TEST(f_large_number_1){
+    testing_sprinf_f("%f", 1234567890.599999);
+}
+END_TEST
+
+START_TEST(f_scientific_notation){
+    testing_sprinf_f("%f", 1.23e5);
+}
+END_TEST
+
+START_TEST(f_nan_test){
+    testing_sprinf_f("%f", 0.0/0.0);
+}
+END_TEST
+
+START_TEST(f_inf_test){
+    testing_sprinf_f("%f", 1.0/0.0);
+}
+END_TEST
+
+START_TEST(f_pi_test){
+    testing_sprinf_f("%.9f", 3.1415926535);
 }
 END_TEST
 
@@ -159,10 +132,13 @@ Suite *suite_sprintf_flags_f(void){
     tcase_add_test(tc, f_flag_precision_2);
     tcase_add_test(tc, f_flag_precision_3);
     tcase_add_test(tc, f_flag_precision_4);
-
+    tcase_add_test(tc, f_negative);
+    tcase_add_test(tc, f_large_number);
+    tcase_add_test(tc, f_scientific_notation);
+    tcase_add_test(tc, f_large_number_1);
+    tcase_add_test(tc, f_inf_test);
+    tcase_add_test(tc, f_nan_test);
 
     suite_add_tcase(s, tc);
     return s;
 }
-
-

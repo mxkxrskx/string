@@ -1,9 +1,12 @@
 #include "s21_sprintf.h"
 
-//static int count = 0;
+static int count = 0;
+// Функция sprintf может вернуть отрицательное значение в случае ошибки. В частности, она может вернуть:
+// -1: Это указывает на то, что произошла ошибка во время форматирования строки, например, недостаточно места в буфере для записи результата. В этом случае результат в буфер не записывается.
+// -2: Это возвращается, если какой-либо из аргументов функции sprintf является нулевым указателем.
 
 int main() {
-  Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f()};
+  Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i()};
   for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
        i++) {
     run_testcase(suite_array[i]);
@@ -254,35 +257,47 @@ void process_s(va_list args, Specifiers *spec, char str[BUFF]){
   }
 }
 
-void getSTRINGfromFLOAT(long double f, Specifiers *spec, char str[BUFF]){
+void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
     long double left = 0.0;
     long double right = modfl(f, &left);
-    getSTRINGfromNUM((int64_t)left, 10, str, spec);
-    str[s21_strlen(str)] = '.';
-    char frac_part[BUFF] = "\0";
     for(int i = 0; i < spec->precision; i++){
-      right *= 10;
-      int frac_digit = (int)right;
-      frac_part[i] = frac_digit + '0';
-      right -= frac_digit;
+      right *= 10.0;
     }
-    s21_strncat(str, frac_part, s21_strlen(frac_part));
+    char intpart[BUFF] = "\0";
+    right = roundl(right);
+    if((int)right % 100000 == 0 && (int)right != 0 && abs((int)right) != 500000){
+      getSTRINGfromNUM(((int64_t)left)+1, 10, intpart, spec);
+      s21_strncat(intpart, ".", 1);
+      right = 0;
+    }
+    else{
+      getSTRINGfromNUM((int64_t)left, 10, intpart, spec);
+      s21_strncat(intpart, ".", 1);
+    }
+    char fracpart[BUFF] = "\0";
+    int64_t farction = (double)fabsl(right);
+    getSTRINGfromNUM(farction, 10, fracpart, spec);
+    if(fracpart[0] == '0' || fracpart[0] == '+'){
+      s21_memset(fracpart, '0', spec->precision);
+    }
+    s21_strncat(intpart, fracpart, s21_strlen(fracpart));
+    s21_strncat(str, intpart, s21_strlen(intpart));
 }
 
-void process_f(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 'f';
-  long double f = 0.0;
+void commonAction(long double *x, Specifiers *spec, va_list args){
   if(spec->length == 'L'){
-    f = va_arg(args, long double);
+    *x = va_arg(args, long double);
   }
   else{
-    f = va_arg(args, double);
+    *x = va_arg(args, double);
   }
   if(spec->precision == 0){
     spec->precision = 6;
   }
-  char number[BUFF] = "\0";
-  getSTRINGfromFLOAT(f, spec, number);
+}
+
+void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec, long double f){
+  getSTRINGfromF(f, spec, number);
   if(number[0] != '-' && spec->space == 1 && spec->minus == 1){
     str[0] = ' ';
     str++;
@@ -290,13 +305,58 @@ void process_f(va_list args, Specifiers *spec, char str[BUFF]){
   if(spec->space == 1 && number[0] == '-'){
     spec->space = 0;
   }
-  process_line_with_condition(str, number, spec);
-  if(spec->zero && spec->space && number[0] != '-'){
-    str[0] = ' ';
-  }
   if(spec->zero && spec->plus && number[0] != '-'){
     str[0] = '+';
   }
+  process_line_with_condition(str, number, spec);
+  if(spec->zero && spec->plus && number[0] != '-'){
+    str[0] = '+';
+  }
+  if(spec->zero && spec->space && number[0] != '-'){
+    str[0] = ' ';
+  }
+}
+
+void process_f(va_list args, Specifiers *spec, char str[BUFF]){
+  spec->specifier = 'f';
+  long double f = 0.0;
+  commonAction(&f, spec, args);
+  char number[BUFF] = "\0";
+  if(isnan(f)){
+    s21_strncpy(str, "nan", 4);
+  }
+  else if(isinf(f)){
+    s21_strncpy(str, "inf", 4);
+  }
+  else{
+    process_normal_f(number, str, spec, f);
+  }
+}
+
+void getSTRINGfromE(long double e, Specifiers *spec, char str[BUFF]){
+  long double left = 0.0;
+  long double right = modfl(e, &left);
+  //234 -> 2.340000e+02
+  int postfix = 0;
+  while(1){
+    int digit = (int)left;
+    left/=10.0;
+    if(digit == 0){
+      break;
+    }
+    postfix++;
+  }
+  left*=100;
+  char temp[BUFF] = "\0";
+  getSTRINGfromF(left, spec, temp);
+  printf("%s", temp);
+}
+
+void process_e(va_list args, Specifiers *spec, char str[BUFF]){
+  spec->specifier = 'e';
+  long double e = 0.0;
+  commonAction(&e, spec, args);
+  getSTRINGfromE(e, spec, str);
 }
 
 void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
@@ -304,23 +364,19 @@ void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF
   while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
     tmp++;
   }
-  switch (*tmp) {
-    case 'c':
-        process_c(args, spec, str);
-        break; 
-    case 'd':
-        process_d(args, spec, str);
-        break;
-    case 'f':
-        process_f(args, spec, str);
-        break;
-    case 's':
-        process_s(args, spec, str);
-        break;
-    case 'u':
-        process_u(args, spec, str);
-        break;
-    }
+  if (*tmp == 'c') {
+    process_c(args, spec, str);
+  } else if (*tmp == 'd' || *tmp == 'i') {
+    process_d(args, spec, str);
+  } else if (*tmp == 'f') {
+    process_f(args, spec, str);
+  } else if (*tmp == 's') {
+    process_s(args, spec, str);
+  } else if (*tmp == 'u') {
+    process_u(args, spec, str);
+  } else if(*tmp == 'e' || *tmp == 'E'){
+    process_e(args, spec, str);
+  }
 }
 
 void skip_spec_line(const char **format){
@@ -336,6 +392,8 @@ void skip_spec_line(const char **format){
 int s21_sprintf(char *str, const char *format, ...) {
   va_list args;
   va_start(args, format);
+  //int count = 0;
+  char *str_beg = str;
   while (*format) {
     char temp[BUFF] = "\0";
     Specifiers spec = {0};
@@ -349,15 +407,16 @@ int s21_sprintf(char *str, const char *format, ...) {
       s21_memcpy(str, temp, s21_strlen(temp));
       str += s21_strlen(temp);
       skip_spec_line(&format);
+      //count += (int)s21_strlen(temp);
     }
     if(*format == '\0'){
       break;
     }
     *str++ = *format++;
+    //count++;
   }
 
   va_end(args);
-
-  return 0;
+  return str-str_beg;
 }
 
