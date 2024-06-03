@@ -14,7 +14,7 @@ void *s21_trim(const char *src, const char *trim_chars) {
   s21_size_t length = end - begin;
   char *res = (char *)malloc(length + 1);
   if (res != S21_NULL) {
-    res = strncpy(res, src + begin, length);
+    res = s21_strncpy(res, src + begin, length);
     res[length] = '\0';
   }
   return res;

@@ -21,6 +21,7 @@ START_TEST(no_sym) {
 
   testing_strchr(str, c);
 }
+END_TEST
 
 START_TEST(zero_line) {
   const char *str = "\0";
