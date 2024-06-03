@@ -4,7 +4,7 @@ void testing_strtok(char *str, const char *delim) {
   // make str_copy
   s21_size_t len = s21_strlen(str);
 
-  char *str_copy = malloc(len + 1);
+  void *str_copy = malloc(len + 1);
   s21_memcpy(str_copy, str, len);
 
   // comparison
@@ -25,6 +25,8 @@ void testing_strtok(char *str, const char *delim) {
     else
       ck_assert_ptr_eq(orig_res, s21_res);
   }
+  if (str_copy)
+    free(str_copy);
 }
 
 // самый обычный тест
