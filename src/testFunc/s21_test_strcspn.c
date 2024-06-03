@@ -65,7 +65,7 @@ Suite *suite_strcspn(void) {
   tcase_add_test(tc, empty_str2);
   tcase_add_test(tc, empty_both);
   tcase_add_test(tc, full_match);
-    
+
   suite_add_tcase(s, tc);
   return s;
 }
