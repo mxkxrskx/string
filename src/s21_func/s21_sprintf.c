@@ -6,22 +6,22 @@ static int count = 0;
 // -2: Это возвращается, если какой-либо из аргументов функции sprintf является нулевым указателем.
 
 int main() {
-  Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i()};
-  for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
-       i++) {
-    run_testcase(suite_array[i]);
-    printf("\n");
-  }
+  // Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i()};
+  // for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
+  //      i++) {
+  //   run_testcase(suite_array[i]);
+  //   printf("\n");
+  // }
 
-  return 0;
-}
+  char str[BUFF] = "\0";
+  char str1[BUFF] = "\0";
+  double x = 0.0000123123;
+  char *format = "%+25.1e\n";
+  // s21_sprintf(str1, format, x);
+  // printf("s21 = %s", str1);
+  sprintf(str, format, x);
+  printf("orig = %s", str);
 
-void run_testcase(Suite *testcase){
-  SRunner *sr = srunner_create(testcase);
-  srunner_set_fork_status(sr, CK_NOFORK);
-  srunner_run_all(sr, CK_NORMAL);
-
-  srunner_free(sr);  
 }
 
 void set_flags(const char *format, Specifiers *spec) {
@@ -116,7 +116,6 @@ void get_line_c(wchar_t c, Specifiers *spec, char str[BUFF]){
 }
 
 void process_c(va_list args, Specifiers *spec, char str[BUFF]){
-    spec->specifier = 'c';
     if(spec->length == 'l'){
         wchar_t c = va_arg(args, wchar_t);
         get_line_c(c, spec, str);
@@ -169,7 +168,6 @@ void minus_process(char str1[BUFF], char str2[BUFF], Specifiers *spec, s21_size_
 }
 
 void process_u(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 'u';
   uint64_t u = va_arg(args, uint64_t);
   switch (spec->length)
   {
@@ -189,7 +187,6 @@ void process_u(va_list args, Specifiers *spec, char str[BUFF]){
 }
 
 void process_d(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 'd';
     int64_t d = va_arg(args, int64_t);
     switch(spec->length){
         case 0:
@@ -241,7 +238,6 @@ void get_line_s(char str1[BUFF], char str2[BUFF], Specifiers *spec){
 }
 
 void process_s(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 's';
   switchOffSpec(spec);
   if(spec->length == 'l'){
     wchar_t *s = va_arg(args, wchar_t *);
@@ -264,8 +260,7 @@ void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
       right *= 10.0;
     }
     char intpart[BUFF] = "\0";
-    right = roundl(right);
-    if((int)right % 100000 == 0 && (int)right != 0 && abs((int)right) != 500000){
+    if((int)(roundl(right)-right) == 1 && (int)right != 0){
       getSTRINGfromNUM(((int64_t)left)+1, 10, intpart, spec);
       s21_strncat(intpart, ".", 1);
       right = 0;
@@ -274,6 +269,7 @@ void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
       getSTRINGfromNUM((int64_t)left, 10, intpart, spec);
       s21_strncat(intpart, ".", 1);
     }
+    right = roundl(right);
     char fracpart[BUFF] = "\0";
     int64_t farction = (double)fabsl(right);
     getSTRINGfromNUM(farction, 10, fracpart, spec);
@@ -284,7 +280,7 @@ void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
     s21_strncat(str, intpart, s21_strlen(intpart));
 }
 
-void commonAction(long double *x, Specifiers *spec, va_list args){
+char *commonAction(long double *x, Specifiers *spec, va_list args){
   if(spec->length == 'L'){
     *x = va_arg(args, long double);
   }
@@ -294,6 +290,17 @@ void commonAction(long double *x, Specifiers *spec, va_list args){
   if(spec->precision == 0){
     spec->precision = 6;
   }
+  char *error_massage = S21_NULL;
+  if (isnan(*x) && signbit(*x)) {
+    error_massage = "-nan";
+  } else if (isnan(*x) && !signbit(*x)) {
+      error_massage = "nan";
+  } else if (isinf(*x) && signbit(*x)) {
+      error_massage = "-inf";
+  } else if (isinf(*x) && !signbit(*x)) {
+      error_massage = "inf";
+  }
+  return error_massage;
 }
 
 void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec, long double f){
@@ -318,51 +325,80 @@ void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec, long 
 }
 
 void process_f(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 'f';
   long double f = 0.0;
-  commonAction(&f, spec, args);
-  char number[BUFF] = "\0";
-  if(isnan(f)){
-    s21_strncpy(str, "nan", 4);
-  }
-  else if(isinf(f)){
-    s21_strncpy(str, "inf", 4);
+  char *error = commonAction(&f, spec, args);
+  if(error){
+    s21_strncat(str, error, s21_strlen(error));
   }
   else{
+    char number[BUFF] = "\0";
     process_normal_f(number, str, spec, f);
   }
 }
 
-void getSTRINGfromE(long double e, Specifiers *spec, char str[BUFF]){
-  long double left = 0.0;
-  long double right = modfl(e, &left);
-  //234 -> 2.340000e+02
+void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]){
   int postfix = 0;
-  while(1){
-    int digit = (int)left;
-    left/=10.0;
-    if(digit == 0){
-      break;
-    }
+  while((int)e != 0){
+    e/=10.0;
     postfix++;
   }
-  left*=100;
+  e*=10;
+  if(postfix != 0) postfix--;
   char temp[BUFF] = "\0";
-  getSTRINGfromF(left, spec, temp);
-  printf("%s", temp);
+  getSTRINGfromF(e, spec, temp);
+  char postfix_d[BUFF] = "\0";
+  if(postfix > 0 || postfix < 10){
+    postfix_d[1] = '0';
+    postfix_d[2] = '\0';
+  }
+  postfix_d[0] = '+';
+  getSTRINGfromNUM(postfix, 10, postfix_d, spec);
+  s21_strncat(str, temp, s21_strlen(temp));
+  s21_strncat(str, &spec->specifier,  2);
+  s21_strncat(str, postfix_d, s21_strlen(postfix_d));
 }
 
 void process_e(va_list args, Specifiers *spec, char str[BUFF]){
-  spec->specifier = 'e';
   long double e = 0.0;
-  commonAction(&e, spec, args);
-  getSTRINGfromE(e, spec, str);
+  char *error = commonAction(&e, spec, args);
+  if(error){
+    s21_strncat(str, error, s21_strlen(error));
+  }
+  else{
+    char number[BUFF] = "\0";
+    if((int)e == 0){
+
+    }
+    else{
+      getSTRINGfromEPLUS(e, spec, str);
+
+    }
+  }
 }
+
+
+
+void process_g(va_list args, Specifiers *spec, char str[BUFF]){
+  long double g = 0.0;
+  char *error = commonAction(&g, spec, args);
+  if(error){
+    s21_strncat(str, error, s21_strlen(error));
+  }
+  else{
+    char number[BUFF] = "\0";
+    //getSTRINGfromG(g, spec, str);
+  }
+}
+
 
 void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
   char *tmp = (char *)format;
-  while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
+  while (1) {
     tmp++;
+    if(s21_strchr("cdieEfgGosuxXpn", *tmp)){
+      spec->specifier = *tmp;
+      break;
+    }
   }
   if (*tmp == 'c') {
     process_c(args, spec, str);
@@ -376,6 +412,8 @@ void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF
     process_u(args, spec, str);
   } else if(*tmp == 'e' || *tmp == 'E'){
     process_e(args, spec, str);
+  } else if(*tmp == 'g' || *tmp == 'G'){
+    process_g(args, spec, str);
   }
 }
 
