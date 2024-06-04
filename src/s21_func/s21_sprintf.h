@@ -3,12 +3,16 @@
 #include "s21_string.h"
 #include "../testFunc/s21_string_test.h"
 
+#define DEFAULT_PRECISION 6
+
 typedef struct Specifiers {
   bool space;
   bool zero;
   bool minus;
   bool plus;
-  
+  bool hash;
+  bool fraction;
+
   char length;
   int width;
   int precision;

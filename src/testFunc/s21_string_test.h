@@ -15,3 +15,6 @@ Suite *suite_sprintf_flags_d(void);
 Suite *suite_sprintf_flags_c(void);
 Suite *suite_sprintf_flags_u(void);
 Suite *suite_sprintf_flags_s(void);
+Suite *suite_sprintf_flags_f(void);
+Suite *suite_sprintf_flags_i(void);
+Suite *suite_sprintf_flags_e(void);

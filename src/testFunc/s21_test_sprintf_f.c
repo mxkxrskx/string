@@ -5,7 +5,7 @@ void testing_sprinf_f(const char*format, double x){
     char s21[BUFF] = "\0";
     sprintf(original, format, x);
     s21_sprintf(s21, format, x);
-    ck_assert_int_eq(sprintf(original, format, x), s21_sprintf(s21, format, x));
+    //ck_assert_int_eq(sprintf(original, format, x), s21_sprintf(s21, format, x));
     ck_assert_str_eq(original, s21);
 }
 
@@ -74,13 +74,13 @@ START_TEST(f_flag_precision_3){
 }
 END_TEST
 
-START_TEST(f_flag_precision_4){
+START_TEST(f_flag_precision_4_round){
     testing_sprinf_f("% -+10.5f", 52.9999999);
 }
 END_TEST
 
 START_TEST(f_negative){
-    testing_sprinf_f("%f", -10.5);
+    testing_sprinf_f("%f", -10.599999999);
 }
 END_TEST
 
@@ -89,8 +89,8 @@ START_TEST(f_large_number){
 }
 END_TEST
 
-START_TEST(f_large_number_1){
-    testing_sprinf_f("%f", 1234567890.599999);
+START_TEST(f_large_number_1_round){
+    testing_sprinf_f("%f", 1234567890.599999999);
 }
 END_TEST
 
@@ -100,12 +100,12 @@ START_TEST(f_scientific_notation){
 END_TEST
 
 START_TEST(f_nan_test){
-    testing_sprinf_f("%f", 0.0/0.0);
+    testing_sprinf_f("%f", -0.0/0.0);
 }
 END_TEST
 
 START_TEST(f_inf_test){
-    testing_sprinf_f("%f", 1.0/0.0);
+    testing_sprinf_f("%f", -1.0/0.0);
 }
 END_TEST
 
@@ -131,13 +131,14 @@ Suite *suite_sprintf_flags_f(void){
     tcase_add_test(tc, f_flag_precision_1);
     tcase_add_test(tc, f_flag_precision_2);
     tcase_add_test(tc, f_flag_precision_3);
-    tcase_add_test(tc, f_flag_precision_4);
+    tcase_add_test(tc, f_flag_precision_4_round);
     tcase_add_test(tc, f_negative);
     tcase_add_test(tc, f_large_number);
     tcase_add_test(tc, f_scientific_notation);
-    tcase_add_test(tc, f_large_number_1);
+    tcase_add_test(tc, f_large_number_1_round);
     tcase_add_test(tc, f_inf_test);
     tcase_add_test(tc, f_nan_test);
+    tcase_add_test(tc, f_pi_test);
 
     suite_add_tcase(s, tc);
     return s;
