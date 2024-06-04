@@ -21,7 +21,7 @@ typedef struct Specifiers {
 
 } Specifiers;
 //удалить runcase
-void run_testcase(Suite *testcase);
+//void run_testcase(Suite *testcase);
 void set_flags(const char *format, Specifiers *spec);
 void set_width(const char *format, va_list args, Specifiers *spec);
 void set_precision(const char *format, va_list args, Specifiers *spec);
