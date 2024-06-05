@@ -60,7 +60,7 @@ START_TEST(f_flag_9){
 END_TEST
 
 START_TEST(f_flag_precision_1){
-    testing_sprinf_f("%10.5f", -52.666666666);
+    testing_sprinf_f("%10.15f", -52.66666666666666);
 }
 END_TEST
 

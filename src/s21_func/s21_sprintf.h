@@ -3,7 +3,7 @@
 #include "s21_string.h"
 #include "../testFunc/s21_string_test.h"
 
-#define DEFAULT_PRECISION 6
+#define DEFAULT_PRECISION 6 
 
 typedef struct Specifiers {
   bool space;
@@ -16,6 +16,7 @@ typedef struct Specifiers {
   char length;
   int width;
   int precision;
+  int postfix;
   char specifier;
 
 

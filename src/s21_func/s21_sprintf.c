@@ -6,31 +6,37 @@ static int count = 0;
 
 int main() {
 
-  // Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i(), suite_sprintf_flags_e()};
+  // Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i(), suite_sprintf_flags_e(), 
+  // suite_sprintf_flags_o(), suite_sprintf_flags_x(), suite_sprintf_flags_p(), suite_sprintf_flags_g()};
   // for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
   //      i++) {
   //   run_test_cases(suite_array[i]);
   //   printf("\n");
   // }
 
+  //run_test_cases(suite_sprintf_flags_g());
+
   char str[BUFF] = "\0";
   char str1[BUFF] = "\0";
-  int x = 10;
-  char *format = "%+010X\n";
+
+  double x = 1.56789;
+  char *format = "%g\n";
+
   s21_sprintf(str1, format, x);
   printf("s = %s", str1);
+
   sprintf(str, format, x);
   printf("o = %s", str);
 
 }
 
-// void run_test_cases(Suite *testcase) {
-//   SRunner *sr = srunner_create(testcase);
-//   srunner_set_fork_status(sr, CK_NOFORK);
-//   srunner_run_all(sr, CK_NORMAL);
+void run_test_cases(Suite *testcase) {
+  SRunner *sr = srunner_create(testcase);
+  srunner_set_fork_status(sr, CK_NOFORK);
+  srunner_run_all(sr, CK_NORMAL);
 
-//   srunner_free(sr);
-// }
+  srunner_free(sr);
+}
 
 void set_flags(const char *format, Specifiers *spec) {
     char *tmp = (char *)format;
@@ -150,14 +156,14 @@ void getSTRINGfromNUM(int64_t num, int base, char tmp1[BUFF], Specifiers *spec){
         tmp[--index] = "0123456789abcdef"[num%base];
         num/= base;
     }
-    int precision = spec->precision - s21_strlen(tmp+index);
+    int precision = spec->precision - s21_strlen(tmp+index) - (spec->specifier == 'o' && spec->hash ? 1 : 0);
     if(precision > 0 && spec->precision != 0 && s21_strchr("diouXx", spec->specifier)){
       while(precision > 0){
         tmp[--index] = '0';
         precision--;
       }
     }
-    if(temp < 0 && spec->specifier != 'u'){
+    if(temp < 0 && spec->specifier != 'u' && spec->specifier != 'p'){
         tmp[--index] = '-';
     }
     if(spec->plus && spec->zero == 0 && temp >= 0  && !spec->fraction && !s21_strchr("ouxX", spec->specifier)){
@@ -168,7 +174,7 @@ void getSTRINGfromNUM(int64_t num, int base, char tmp1[BUFF], Specifiers *spec){
 
 void getSTRING(char str1[BUFF], char str2[BUFF], char c, s21_size_t width) {
     s21_memset(str1, c, width);
-    s21_strncpy(str1+width,str2, s21_strlen(str2));
+    s21_memcpy(str1+width,str2, s21_strlen(str2));
 }
 
 void minus_process(char str1[BUFF], char str2[BUFF], Specifiers *spec, s21_size_t width){
@@ -294,6 +300,14 @@ void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec,
   else{
     fracpart[spec->precision] = '\0';
   }
+  printf("before : fracpart %s\n", fracpart);
+  if(spec->specifier == 'g' || spec->specifier == 'G'){
+    if(fracpart[s21_strlen(fracpart)] > '5'){
+      fracpart[s21_strlen(fracpart)-1] = fracpart[s21_strlen(fracpart)-1] + 1;
+      fracpart[s21_strlen(fracpart)] = '\0';
+    }
+  }
+  printf("after : fracpart %s\n", fracpart);
 }
 
 void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
@@ -301,6 +315,7 @@ void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
     long double right = modfl(f, &left);
     int zeros = 0;
     int flag = 1;
+    spec->precision > 15 ? spec->precision = 15 : 0;
     int precision = spec->precision > DEFAULT_PRECISION ?  spec->precision : DEFAULT_PRECISION;
     for(int i = 0; i < precision; i++){
       right *= 10.0;
@@ -345,7 +360,7 @@ char *commonAction(long double *x, Specifiers *spec, va_list args){
   return error_massage;
 }
 
-void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec, long double f){
+void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec){
   if(number[0] != '-' && spec->space == 1 && spec->minus == 1){
     str[0] = ' ';
     str++;
@@ -374,7 +389,7 @@ void process_f(va_list args, Specifiers *spec, char str[BUFF]){
   else{
     char number[BUFF] = "\0";
     getSTRINGfromF(f, spec, number);
-    process_normal_f(number, str, spec, f);
+    process_normal_f(number, str, spec);
   }
 }
 
@@ -385,7 +400,8 @@ void postfix_process(int postfix, Specifiers *spec, char postfix_number[BUFF], c
     postfix_number[2] = '0' + postfix;
     postfix_number[3] = '\0';
   } else{
-    getSTRINGfromNUM(postfix, BASE_DECIMAL, postfix_number, spec);
+    postfix_number[0] = c;
+    getSTRINGfromNUM(postfix, BASE_DECIMAL, postfix_number+1, spec);
   }
 }
 
@@ -404,12 +420,12 @@ void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]){
   e*=10;
   if(postfix != 0) postfix--;
 
+  spec->postfix = postfix;
   char number[BUFF] = "\0";
   getSTRINGfromF(e, spec, number);
 
   char postfix_d[BUFF] = "\0";
   postfix_process(postfix, spec, postfix_d, '+');
-
   getEnumber(str, number, postfix_d, spec);
 }
 
@@ -419,13 +435,12 @@ void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]){
     e*=10.0;
     postfix++;
   }
-
+  spec->postfix = postfix;
   char number[BUFF] = "\0";
   getSTRINGfromF(e, spec, number);
 
   char postfix_d[BUFF] = "\0";
   postfix_process(postfix, spec, postfix_d, '-');
-
   getEnumber(str, number, postfix_d, spec);
 }
 
@@ -443,7 +458,7 @@ void process_e(va_list args, Specifiers *spec, char str[BUFF]){
     else{
       getSTRINGfromEPLUS(e, spec, number);
     }
-    process_normal_f(number, str, spec, e);
+    process_normal_f(number, str, spec);
   }
 }
 
@@ -454,8 +469,31 @@ void process_g(va_list args, Specifiers *spec, char str[BUFF]){
     s21_strncat(str, error, s21_strlen(error));
   }
   else{
-    char number[BUFF] = "\0";
-    //getSTRINGfromG(g, spec, str);
+    char ENum[BUFF] = "\0";
+    if((int) g == 0){
+      getSTRINGfromEMINUS(g, spec, ENum);
+    }
+    else{
+      getSTRINGfromEPLUS(g, spec, ENum);
+    }
+    char FNum[BUFF] = "\0";
+    char temp[BUFF] = "\0";
+    sprintf(temp, "%g", (double)g);
+    if(spec->postfix < 4){
+      //FLOAT
+      spec->precision = 4;
+      getSTRINGfromF(g, spec, FNum);
+
+      printf("ORIGINAL : %s\nFLOAT : %s\n\n", temp, FNum);
+
+    }
+    else{
+      //E-NOTATION
+      spec->precision = 4;
+      process_normal_f(ENum, str, spec);
+
+      printf("ORIGINAL : %s\nE_NOTATION : %s\n\n", temp, ENum);
+    }
   }
 }
 
@@ -466,22 +504,39 @@ void process_o(va_list args, Specifiers *spec, char str[BUFF]){
   process_line_with_condition(str, octal, spec);
 }
 
+void process_hex_hash(char str[BUFF], Specifiers *spec){
+  if(spec->hash && spec->zero){
+    char *temp = str;
+    while(*temp++){
+      if(*temp == 'x'){
+        *temp = '0';
+        break;
+      }
+    }
+    str[0] = '0';
+    str[1] = 'x';
+  }
+}
+
 void process_x(va_list args, Specifiers *spec, char str[BUFF]){
-  int64_t x = va_arg(args, int64_t);
+  uint64_t x = va_arg(args, uint64_t);
   char hex[BUFF] = "\0";
+  if(spec->hash){
+    hex[0] = '0';
+    hex[1] = 'x';
+  }
   getSTRINGfromNUM(x, BASE_HEX, hex+spec->hash+spec->hash, spec);
-  //ФИКСАНУТЬ ПРАВИЛЬНЫЙ ВЫВОВД С # И БЕЗ И В pointer тоже
-  //написать тесты для o x X 
-  //реализовать Gg
   process_line_with_condition(str, hex, spec);
-  //to_upper
+  process_hex_hash(str, spec);
+  spec->specifier == 'X' ? s21_to_upper(str) : 0;
 }
 
 void process_p(va_list args, Specifiers *spec, char str[BUFF]){
   uint64_t p = va_arg(args, uint64_t);
   char pointer[BUFF] = "\0";
-  getSTRINGfromNUM(p, BASE_HEX, pointer, spec);
-  printf("%s\n", pointer);
+  pointer[0] = '0';
+  pointer[1] = 'x';
+  getSTRINGfromNUM(p, BASE_HEX, pointer+2, spec);
   process_line_with_condition(str, pointer, spec);
 }
 
@@ -554,4 +609,3 @@ int s21_sprintf(char *str, const char *format, ...) {
   va_end(args);
   return str-str_beg;
 }
-

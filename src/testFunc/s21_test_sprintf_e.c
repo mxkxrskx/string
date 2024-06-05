@@ -119,6 +119,11 @@ START_TEST(e_pi_test){
 }
 END_TEST
 
+START_TEST(e_long_number){
+    testing_sprintf_e("%e", 12312312312.2567899);
+}
+END_TEST
+
 Suite *suite_sprintf_flags_e(void){
     Suite *s = suite_create("SPRINTF_E");
     TCase *tc = tcase_create("sprintf_tc_E");
@@ -145,6 +150,7 @@ Suite *suite_sprintf_flags_e(void){
     tcase_add_test(tc, e_inf_test_minus);
     tcase_add_test(tc, e_nan_test);
     tcase_add_test(tc, e_pi_test);
+    tcase_add_test(tc, e_long_number);
 
     suite_add_tcase(s, tc);
     return s;
