@@ -5,7 +5,7 @@ void testing_sprintf_g(const char* format, double x) {
     char s21[BUFF] = "\0";
     sprintf(original, format, x);
     s21_sprintf(s21, format, x);
-    ck_assert_msg(strcmp(original, s21) == 0, "Failed: original: %s s21: %s\n", original, s21);
+    ck_assert_msg(strcmp(original, s21) == 0, "Failed: original: %s s21: %s, number : %f\n", original, s21, x);
 }
 
 START_TEST(g_normal) {

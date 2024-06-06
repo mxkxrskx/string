@@ -19,7 +19,7 @@ int main() {
   char str[BUFF] = "\0";
   char str1[BUFF] = "\0";
 
-  double x = 1.56789;
+  double x = 1.88999;
   char *format = "%g\n";
 
   s21_sprintf(str1, format, x);
@@ -288,6 +288,15 @@ void create_left_part(char intpart[BUFF], long double left, long double *right, 
     *right = roundl(*right);
 }
 
+void delete_zeros(char fracpart[BUFF]){
+  for(s21_size_t i = 0; i < s21_strlen(fracpart); i++){
+    if(fracpart[i] == '0'){
+      fracpart[i] = '\0';
+      break;
+    }
+  }
+}
+
 void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec, int zeros){
   spec->fraction = 1;
   int64_t fraction = (double)fabsl(right);
@@ -300,14 +309,9 @@ void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec,
   else{
     fracpart[spec->precision] = '\0';
   }
-  printf("before : fracpart %s\n", fracpart);
   if(spec->specifier == 'g' || spec->specifier == 'G'){
-    if(fracpart[s21_strlen(fracpart)] > '5'){
-      fracpart[s21_strlen(fracpart)-1] = fracpart[s21_strlen(fracpart)-1] + 1;
-      fracpart[s21_strlen(fracpart)] = '\0';
-    }
+    delete_zeros(fracpart);
   }
-  printf("after : fracpart %s\n", fracpart);
 }
 
 void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
@@ -407,9 +411,20 @@ void postfix_process(int postfix, Specifiers *spec, char postfix_number[BUFF], c
 
 void getEnumber(char str[BUFF], char number[BUFF], char postfix[BUFF], Specifiers *spec){
   s21_strncat(str, number, s21_strlen(number));
-  s21_strncat(str, &spec->specifier,  2);
+  s21_strncat(str, "e",  2);
   s21_strncat(str, postfix, s21_strlen(postfix));
 } 
+
+void getSTRINGfromE(long double e, Specifiers *spec, char sign, char str[BUFF]){
+  char number[BUFF] = "\0";
+  getSTRINGfromF(e, spec, number);
+
+  char postfix_d[BUFF] = "\0";
+  postfix_process(spec->postfix, spec, postfix_d, sign);
+
+  //собираем число
+  getEnumber(str, number, postfix_d, spec);
+}
 
 void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]){
   int postfix = 0;
@@ -419,14 +434,8 @@ void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]){
   }
   e*=10;
   if(postfix != 0) postfix--;
-
   spec->postfix = postfix;
-  char number[BUFF] = "\0";
-  getSTRINGfromF(e, spec, number);
-
-  char postfix_d[BUFF] = "\0";
-  postfix_process(postfix, spec, postfix_d, '+');
-  getEnumber(str, number, postfix_d, spec);
+  getSTRINGfromE(e, spec, '+', str);
 }
 
 void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]){
@@ -436,12 +445,7 @@ void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]){
     postfix++;
   }
   spec->postfix = postfix;
-  char number[BUFF] = "\0";
-  getSTRINGfromF(e, spec, number);
-
-  char postfix_d[BUFF] = "\0";
-  postfix_process(postfix, spec, postfix_d, '-');
-  getEnumber(str, number, postfix_d, spec);
+  getSTRINGfromE(e, spec, '-', str);
 }
 
 void process_e(va_list args, Specifiers *spec, char str[BUFF]){
@@ -460,6 +464,30 @@ void process_e(va_list args, Specifiers *spec, char str[BUFF]){
     }
     process_normal_f(number, str, spec);
   }
+}
+
+int starting_frac(char number[BUFF]){
+  int start_frac = 0;
+  while(number[start_frac++] != '.');
+  return start_frac;
+}
+
+void round_last_digit(char number[BUFF], Specifiers *spec){
+  // len and \0
+  s21_size_t precision = spec->precision;
+  printf("fracpart : %s, prec = %lu\n", starting_frac(number)+number, precision);
+
+  s21_size_t len = s21_strlen(number)-1;
+  do{
+    printf("do\n");
+    if(number[len] < '6' && number[len-1] > number[len]){
+      number[len] = '\0';
+    }
+    else if(number[len] > '5' && number[len-1] <= number[len]){
+      number[len-1] = number[len-1] == '9' ? '\0' :  number[len-1] + 1;
+    }
+    len--;
+  }while(precision != len);
 }
 
 void process_g(va_list args, Specifiers *spec, char str[BUFF]){
@@ -481,15 +509,21 @@ void process_g(va_list args, Specifiers *spec, char str[BUFF]){
     sprintf(temp, "%g", (double)g);
     if(spec->postfix < 4){
       //FLOAT
-      spec->precision = 4;
       getSTRINGfromF(g, spec, FNum);
-
+      if(FNum[s21_strlen(FNum)-1] == '.'){
+        FNum[s21_strlen(FNum)-1] = '\0';
+      }
+      else{
+        printf("frac len = %lu\n", s21_strlen(FNum+starting_frac(FNum)));
+        (s21_strlen(FNum+starting_frac(FNum))) < DEFAULT_PRECISION ? 0 : round_last_digit(FNum, spec); 
+      }
       printf("ORIGINAL : %s\nFLOAT : %s\n\n", temp, FNum);
+      process_normal_f(FNum, str, spec);
 
     }
     else{
-      //E-NOTATION
-      spec->precision = 4;
+      //EXP
+      round_last_digit(ENum, spec);
       process_normal_f(ENum, str, spec);
 
       printf("ORIGINAL : %s\nE_NOTATION : %s\n\n", temp, ENum);
