@@ -49,10 +49,10 @@ clang:
 test: s21_string.a
 	$(CC) $(CFLAGS) $(TESTS) s21_string.a -o s21_test $(CHECK)
 	
-gcov_report: s21_string.a
-	$(CC) $(GCOV_FLAGS) $(TESTS) s21_string.a -o report.out -lm -lcheck
+gcov_report: 
+	$(CC) $(GCOV_FLAGS) $(TESTS) $(SOURCES) -o report.out -lm -lcheck
 	./report.out
-	gcov -f $(SOURCES)
+#	gcov -f $(SOURCES)
 	lcov -t "gcov_report" -o coverage.info -c -d .
 	genhtml -o ./report coverage.info
 	rm -f *.gcno *.gcda *.info report.out *.gcov

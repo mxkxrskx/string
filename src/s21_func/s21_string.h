@@ -28,6 +28,7 @@ void *s21_memchr(const void *str, int c, s21_size_t n);
 int s21_memcmp(const void *str1, const void *str2, s21_size_t n);
 void *s21_memcpy(void *dest, const void *src, s21_size_t n);
 //НАДО ПОМЕНТЬ SPRINTF на S21_SPRINTF на свой!!!!!!!!
+int s21_sscanf(const char *str, const char *format, ...);
 char *s21_strerror(int errnum);
 s21_size_t s21_strlen(const char *str);
 char *s21_strchr(const char *str, int c);
