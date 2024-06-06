@@ -1,14 +1,14 @@
 #include "s21_string_test.h"
 
-void testing_memset(const void *str, const char c, s21_size_t n) {
-  void *orig_res = memchr(str, c, n);
-  void *s21_res = s21_memchr(str, c, n);
+void testing_memset(void *str, const char c, s21_size_t n) {
+  void *orig_res = memset(str, c, n);
+  void *s21_res = s21_memset(str, c, n);
 
-  ck_assert_ptr_eq(orig_res, s21_res);
+  ck_assert_str_eq((char *)orig_res, (char *)s21_res);
 }
 
 START_TEST(normal_line_normal_n) {
-  const void *str = "bebra";
+  char str[] = "bebra";
   const char c = 'A';
   s21_size_t n = 2;
 
@@ -17,7 +17,7 @@ START_TEST(normal_line_normal_n) {
 END_TEST
 
 START_TEST(normal_line_single_n) {
-  const void *str = "bebra";
+  char str[] = "bebra";
   const char c = 'B';
   s21_size_t n = 1;
 
@@ -26,7 +26,7 @@ START_TEST(normal_line_single_n) {
 END_TEST
 
 START_TEST(normal_line_zero_n) {
-  const void *str = "bebra";
+  char str[] = "bebra";
   const char c = 'C';
   s21_size_t n = 0;
 
@@ -35,7 +35,7 @@ START_TEST(normal_line_zero_n) {
 END_TEST
 
 START_TEST(single_line_single_n) {
-  const void *str = "Z";
+  char str[] = "Z";
   const char c = 'D';
   s21_size_t n = 1;
 
@@ -44,7 +44,7 @@ START_TEST(single_line_single_n) {
 END_TEST
 
 START_TEST(single_line_zero_n) {
-  const void *str = "x";
+  char str[] = "x";
   const char c = 'F';
   s21_size_t n = 0;
 
@@ -53,7 +53,7 @@ START_TEST(single_line_zero_n) {
 END_TEST
 
 START_TEST(zero_line_zero_n) {
-  const void *str = "";
+  char str[] = "";
   const char c = 'G';
   s21_size_t n = 0;
 
