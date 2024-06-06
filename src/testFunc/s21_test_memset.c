@@ -71,7 +71,7 @@ Suite *suite_memset(void) {
   tcase_add_test(tc, single_line_single_n);
   tcase_add_test(tc, single_line_zero_n);
   tcase_add_test(tc, zero_line_zero_n);
-  
+
   suite_add_tcase(s, tc);
   return s;
 }

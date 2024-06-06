@@ -1,0 +1,18 @@
+{
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "make debug",
+            "group": "build",
+            "problemMatcher": []
+        }, 
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "./s21_test",
+            "group": "test", 
+            "dependsOn": ["Build"]
+        }
+    ]
+}

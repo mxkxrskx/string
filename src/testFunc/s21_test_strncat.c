@@ -8,8 +8,8 @@ void testing_strncat(char *dest, const void *str, s21_size_t n) {
 }
 
 START_TEST(zero_dest_zero_n) {
-  char* dest = calloc(0 + 1, sizeof(char));
-  const char* str = "adding";
+  char *dest = calloc(0 + 1, sizeof(char));
+  const char *str = "adding";
   s21_size_t n = 0;
 
   testing_strncat(dest, str, n);
@@ -18,8 +18,8 @@ START_TEST(zero_dest_zero_n) {
 END_TEST
 
 START_TEST(zero_dest_single_n) {
-  char* dest = calloc(1 + 1, sizeof(char));
-  const char* str = "adding";
+  char *dest = calloc(1 + 1, sizeof(char));
+  const char *str = "adding";
   s21_size_t n = 1;
 
   testing_strncat(dest, str, n);
@@ -28,9 +28,9 @@ START_TEST(zero_dest_single_n) {
 END_TEST
 
 START_TEST(zero_dest_normal_n) {
-  char* dest = calloc(4 + 1, sizeof(char));
+  char *dest = calloc(4 + 1, sizeof(char));
   dest[0] = '1';
-  const char* str = "adding";
+  const char *str = "adding";
   s21_size_t n = 4;
 
   testing_strncat(dest, str, n);
@@ -39,8 +39,8 @@ START_TEST(zero_dest_normal_n) {
 END_TEST
 
 START_TEST(zero_dest_max_n) {
-  char* dest = calloc(6 + 1, sizeof(char));
-  const char* str = "adding";
+  char *dest = calloc(6 + 1, sizeof(char));
+  const char *str = "adding";
   s21_size_t n = 6;
 
   testing_strncat(dest, str, n);
