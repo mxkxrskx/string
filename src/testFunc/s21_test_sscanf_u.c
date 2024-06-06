@@ -18,7 +18,7 @@ END_TEST
 
 START_TEST(uint2) {
   unsigned long int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0, d1 = 0,
-                         d2 = 0;
+                    d2 = 0;
   const char str[] = "-1337 233333331 5008 3000";
   const char fstr[] = "%1lu %2lu %5lu %4lu";
 
@@ -35,7 +35,7 @@ END_TEST
 
 START_TEST(uint3) {
   unsigned long int a1 = 0, a2 = 0, b1 = 0, b2 = 0, c1 = 0, c2 = 0;
-    long d1 = 0, d2 = 0;
+  long d1 = 0, d2 = 0;
   long double v1, v2;
 
   const char str[] =

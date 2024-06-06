@@ -5,21 +5,15 @@
 #define S21_NULL ((void *)0)
 #define BUFF 4096
 
-#include <check.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <limits.h>
 
 typedef long unsigned int s21_size_t;
-
-//TestFunc
-void run_test_cases(Suite *testcase);
-
 
 //stringFunc
 char *s21_strncat(char *dest, const char *src, s21_size_t n);

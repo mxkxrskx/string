@@ -32,7 +32,6 @@ START_TEST(sscanf_spec_real_2) {
 }
 END_TEST
 
-
 START_TEST(sscanf_spec_real_4) {
   char format[] = "%f";
   char str[] = "Nap";

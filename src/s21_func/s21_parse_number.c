@@ -1,11 +1,12 @@
 #include "s21_parse_number.h"
+
 #include "s21_string.h"
 
 int parse_number(char **ptr, int base, long long *num, int len) {
   const char *valid_digits[17] = {
-      [8] = "01234567",               // octal
-      [10] = "0123456789",            // decimal
-      [16] = "0123456789abcdefABCDEF" // hexadecimal
+      [8] = "01234567",                // octal
+      [10] = "0123456789",             // decimal
+      [16] = "0123456789abcdefABCDEF"  // hexadecimal
   };
   const char *valid = valid_digits[base];
   char *ptr_start = *ptr;
@@ -28,6 +29,6 @@ int parse_number(char **ptr, int base, long long *num, int len) {
   if (success != -1) {
     success = *ptr - ptr_start;
   }
-  
+
   return success;
 }

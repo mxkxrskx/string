@@ -248,8 +248,7 @@ Suite *suite_sscanf_c(void) {
   tcase_add_test(tc, special_symbols_as_chars3);
   tcase_add_test(tc, chars_flags1);
   tcase_add_test(tc, chars_flags2);
-  tcase_add_test(
-      tc, chars_flags3);
+  tcase_add_test(tc, chars_flags3);
   tcase_add_test(tc, chars_flags4);
   tcase_add_test(tc, chars_flags5);
   tcase_add_test(tc, chars_aster1);

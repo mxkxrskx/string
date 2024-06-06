@@ -291,7 +291,7 @@ END_TEST
 Suite *suite_sscanf_o(void) {
   Suite *s = suite_create("SSCANF_O");
   TCase *tc = tcase_create("sscanf_tc");
- 
+
   tcase_add_test(tc, sscanf_spec_ho_1);
   tcase_add_test(tc, sscanf_spec_ho_2);
   tcase_add_test(tc, sscanf_spec_ho_3);

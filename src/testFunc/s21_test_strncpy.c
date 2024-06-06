@@ -27,21 +27,12 @@ START_TEST(small_line_in_src) {
 }
 END_TEST
 
-// максимальная длинна src 4 элемента, a n на 10 элементов
-START_TEST(small_maxline_in_src) {
-  char dest[100] = "";
-  char src[4] = "hell";
-  s21_size_t n = 10;
-
-  testing_strncpy(dest, src, n);
-}
-END_TEST
-
 // дест слишком маленький для n
 START_TEST(small_line_in_dest) {
   char dest[100] = "";
-  char src[120] = "Open the door to a world of fantastic possibilities and "
-                  "dive into an ocean of endless ideas and inspiration!";
+  char src[120] =
+      "Open the door to a world of fantastic possibilities and "
+      "dive into an ocean of endless ideas and inspiration!";
   s21_size_t n = 110;
 
   testing_strncpy(dest, src, n);
@@ -75,7 +66,6 @@ Suite *suite_strncpy(void) {
 
   tcase_add_test(tc, normal_line);
   tcase_add_test(tc, small_line_in_src);
-  tcase_add_test(tc, small_maxline_in_src);
   tcase_add_test(tc, small_line_in_dest);
   tcase_add_test(tc, n_less_than_dest);
   tcase_add_test(tc, one_dest_src);
