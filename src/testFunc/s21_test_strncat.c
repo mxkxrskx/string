@@ -4,7 +4,7 @@ void testing_strncat(char *dest, const void *str, s21_size_t n) {
   void *orig_res = strncat(dest, str, n);
   void *s21_res = s21_strncat(dest, str, n);
 
-  ck_assert_ptr_eq(orig_res, s21_res);
+  ck_assert_str_eq(orig_res, s21_res);
 }
 
 START_TEST(zero_dest_zero_n) {
