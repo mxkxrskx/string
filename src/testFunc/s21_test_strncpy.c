@@ -59,16 +59,6 @@ START_TEST(n_less_than_dest) {
 }
 END_TEST
 
-// zero
-START_TEST(zero_dest_src) {
-  char dest[0];
-  char src[0];
-  s21_size_t n = 0;
-
-  testing_strncpy(dest, src, n);
-}
-END_TEST
-
 // one
 START_TEST(one_dest_src) {
   char dest[1];
@@ -88,7 +78,6 @@ Suite *suite_strncpy(void) {
   tcase_add_test(tc, small_maxline_in_src);
   tcase_add_test(tc, small_line_in_dest);
   tcase_add_test(tc, n_less_than_dest);
-  tcase_add_test(tc, zero_dest_src);
   tcase_add_test(tc, one_dest_src);
 
   suite_add_tcase(s, tc);

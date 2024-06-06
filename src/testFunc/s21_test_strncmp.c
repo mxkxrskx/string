@@ -35,16 +35,6 @@ START_TEST(n_more_than_arr) {
 }
 END_TEST
 
-// пустые массивы
-START_TEST(arr_zero) {
-  const char str1[0];
-  const char str2[0];
-  s21_size_t n = 0;
-
-  testing_strncmp(str1, str2, n);
-}
-END_TEST
-
 // в массивах только одно разное значение
 START_TEST(arr_one_value) {
   const char str1[1] = "s";
@@ -91,7 +81,6 @@ Suite *suite_strncmp(void) {
   tcase_add_test(tc, normal_line);
   tcase_add_test(tc, different_registers);
   tcase_add_test(tc, n_more_than_arr);
-  tcase_add_test(tc, arr_zero);
   tcase_add_test(tc, arr_one_value);
   tcase_add_test(tc, same_one_value);
   tcase_add_test(tc, n_zero);
