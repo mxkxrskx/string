@@ -436,7 +436,7 @@ int parse_exponent_part(char **str, ScanContext *ctx, long double *exponent) {
 }
 
 void s21_isnull(char **str, ScanContext *ctx) {
-  if (str == NULL || *str == NULL || **str == '\0') {
+  if (str == S21_NULL || *str == S21_NULL || **str == '\0') {
     ctx->error = NULL_PTR;
   }
 }

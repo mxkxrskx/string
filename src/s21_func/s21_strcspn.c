@@ -2,8 +2,8 @@
 
 s21_size_t s21_strcspn(const char *str1, const char *str2) {
   s21_size_t res = 0;
-  const char *s1 = NULL;
-  const char *s2 = NULL;
+  const char *s1 = S21_NULL;
+  const char *s2 = S21_NULL;
   int stop = 0;
 
   for (s1 = str1; *s1 != '\0'; s1++) {
