@@ -598,11 +598,11 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]){
   process_line_with_condition(str, pointer, spec);
 }
 
-void handle_specifier(const char *format, Specifiers *spec, va_list args,  char str[BUFF], char *str_start) {
+void handle_specifier(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
   char *tmp = (char *)format;
   while (1) {
     tmp++;
-    if(s21_strchr("cdieEfgGosuxXp", *tmp)){
+    if(s21_strchr("cdieEfgGosuxXpn", *tmp) || *tmp == '%'){
       spec->specifier = *tmp;
       break;
     }
@@ -630,10 +630,14 @@ void handle_specifier(const char *format, Specifiers *spec, va_list args,  char 
   }
 }
 
-void skip_spec_line(const char **format){
+void skip_spec_line(const char **format, char **str, Specifiers *spec){
   while(1){
+    if(spec->specifier == '%'){
+      **str = **format;
+      *str+=1;
+    }
     *format+=1;
-    if(s21_strchr("cdieEfgGosuxXpn", **format)){
+    if(s21_strchr("cdieEfgGosuxXpn", **format) || **format == '%'){
       *format+=1;
       break;
     }
@@ -647,22 +651,31 @@ int s21_sprintf(char *str, const char *format, ...) {
   while (*format) {
     char temp[BUFF] = "\0";
     Specifiers spec = {0};
-
     if (*format == '%') {
       set_flags(format, &spec);
       set_width(format, args, &spec);
       set_precision(format, args, &spec);
       set_length(format, &spec);
-      handle_specifier(format, &spec, args, temp, str_beg);
+      handle_specifier(format, &spec, args, temp);
+      if(spec.specifier == 'n'){
+        *(va_arg(args, int *)) = s21_strlen(str_beg);
+      }
 
       s21_memcpy(str, temp, s21_strlen(temp));
+
       str += s21_strlen(temp);
-      skip_spec_line(&format);
+      skip_spec_line(&format, &str, &spec);
+
     }
     if(*format == '\0'){
       break;
     }
-    *str++ = *format++;
+    if(*format == '%'){
+      continue;
+    }
+    else{
+      *str++ = *format++;
+    }
   }
 
   va_end(args);

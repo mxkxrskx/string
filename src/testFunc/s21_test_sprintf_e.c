@@ -60,7 +60,7 @@ START_TEST(e_flag_9){
 END_TEST
 
 START_TEST(e_flag_precision_1){
-    testing_sprintf_e("%10.5e", -52.666666666);
+    testing_sprintf_e("%#10.5e", -52.666666666);
 }
 END_TEST
 

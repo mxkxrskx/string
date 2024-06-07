@@ -80,12 +80,9 @@ END_TEST
 START_TEST(two_number){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
-    sprintf(original, "%d %10d", 10, 21);
-    s21_sprintf(s21, "%d %10d", 10, 21);
-    //ck_assert_int_eq(sprintf(original, "%d %10d", 10, 21), s21_sprintf(s21, "%d %10d", 10, 21));
+    ck_assert_int_eq(sprintf(original, "%d%10d% 10d", 10, 21, 23), s21_sprintf(s21, "%d%10d% 10d", 10, 21, 23));
     ck_assert_str_eq(original, s21);
 }
-
 Suite *suite_sprintf_flags_d(void){
     Suite *s = suite_create("SPRINTF_D");
     TCase *tc = tcase_create("sprintf_tc_D");

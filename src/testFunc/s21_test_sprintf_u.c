@@ -14,8 +14,8 @@ START_TEST(u_flag_1){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = 51;
-    sprintf(original, "%+u", (unsigned int)x);
-    s21_sprintf(s21, "%+u", (unsigned int)x);
+    sprintf(original, "%u", (unsigned int)x);
+    s21_sprintf(s21, "%u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -34,8 +34,8 @@ START_TEST(u_flag_3){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -53;
-    sprintf(original, "% +10u", (unsigned int)x);
-    s21_sprintf(s21, "% +10u", (unsigned int)x);
+    sprintf(original, "%10u", (unsigned int)x);
+    s21_sprintf(s21, "%10u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -44,8 +44,8 @@ START_TEST(u_flag_4){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -54;
-    sprintf(original, "% -52u", (unsigned int)x);
-    s21_sprintf(s21, "% -52u", (unsigned int)x);
+    sprintf(original, "%-52u", (unsigned int)x);
+    s21_sprintf(s21, "%-52u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -54,8 +54,8 @@ START_TEST(u_flag_7){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -55;
-    sprintf(original, "% -04u", (unsigned int)x);
-    s21_sprintf(s21, "% -04u", (unsigned int)x);
+    sprintf(original, "%-4u", (unsigned int)x);
+    s21_sprintf(s21, "%-4u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -64,8 +64,8 @@ START_TEST(u_flag_5){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -56;
-    sprintf(original, "%+010u", (unsigned int)x);
-    s21_sprintf(s21, "%+010u", (unsigned int)x);
+    sprintf(original, "%010u", (unsigned int)x);
+    s21_sprintf(s21, "%010u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -74,8 +74,8 @@ START_TEST(u_flag_6){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -57;
-    sprintf(original, "% +010u", (unsigned int)x);
-    s21_sprintf(s21, "% +010u", (unsigned int)x);
+    sprintf(original, "%-11.24u", (unsigned int)x);
+    s21_sprintf(s21, "%-11.24u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -85,8 +85,8 @@ START_TEST(u_flag_8){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -58;
-    sprintf(original, "% -+010u", (unsigned int)x);
-    s21_sprintf(s21, "% -+010u", (unsigned int)x);
+    sprintf(original, "%010hu", (short unsigned int)x);
+    s21_sprintf(s21, "%010hu", (short unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -95,8 +95,8 @@ START_TEST(u_flag_9){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = 59;
-    sprintf(original, "% 10u", (unsigned int)x);
-    s21_sprintf(s21, "% 10u", (unsigned int)x);
+    sprintf(original, "%10.1lu", (long unsigned int)x);
+    s21_sprintf(s21, "%10.1lu", (long unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -125,8 +125,8 @@ START_TEST(u_flag_precision_3){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -62;
-    sprintf(original, "%-010.5u", (unsigned int)x);
-    s21_sprintf(s21, "%-010.5u", (unsigned int)x);
+    sprintf(original, "%-10.5u", (unsigned int)x);
+    s21_sprintf(s21, "%-10.5u", (unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
@@ -135,8 +135,8 @@ START_TEST(u_flag_precision_4){
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
     int x = -63;
-    sprintf(original, "% -+10.5u", (unsigned int)x);
-    s21_sprintf(s21, "% -+10.5u", (unsigned int)x);
+    sprintf(original, "%10.5hu", (short unsigned int)x);
+    s21_sprintf(s21, "%10.5hu", (short unsigned int)x);
     ck_assert_str_eq(original, s21);
 }
 END_TEST
