@@ -20,7 +20,7 @@ endif
 
 all: gcov_report
 
-s21_string.a: clang $(OBJECTS)
+s21_string.a: $(OBJECTS)
 	ar rcs s21_string.a $(OBJECTS)
 	ranlib s21_string.a
 	rm -rf $(OBJECTS)
