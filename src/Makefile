@@ -25,7 +25,7 @@
 #
 #rebuild: clean all
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic
+CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -lm -lcheck
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage -lgcov
 CHECK = -lcheck
 SOURCES = $(wildcard s21_func/*.c)
@@ -41,13 +41,13 @@ s21_string.a: clang $(OBJECTS)
 	rm -rf $(OBJECTS)
 	
 clang:
-	$(CLANG) $(SOURCES)
+	$(CLANG) $(SOURCES) $(TESTS)
 	
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test: s21_string.a
-	$(CC) $(CFLAGS) $(TESTS) s21_string.a -o s21_test $(CHECK)
+	$(CC) $(CFLAGS) $(TESTS) s21_string.a -o s21_test $(CHECK) -lm
 	
 gcov_report: 
 	$(CC) $(GCOV_FLAGS) $(TESTS) $(SOURCES) -o report.out -lm -lcheck
@@ -55,7 +55,7 @@ gcov_report:
 #	gcov -f $(SOURCES)
 	lcov -t "gcov_report" -o coverage.info -c -d .
 	genhtml -o ./report coverage.info
-	rm -f *.gcno *.gcda *.info report.out *.gcov
+	rm -f *.gcno *.gcda *.info *.gcov
 	open ./report/index-sort-f.html
 
 clean:

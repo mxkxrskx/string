@@ -5,12 +5,10 @@ char *s21_strtok(char *str, const char *delim) {
   char *return_value = "\0";
 
   if (str) {
-    if (str[0] == '\0')
-      return_value = NULL;
+    if (str[0] == '\0') return_value = NULL;
     token = str;
   } else {
-    if (token[0] == '\0')
-      return_value = NULL;
+    if (token[0] == '\0') return_value = NULL;
     str = token;
   }
 

@@ -4,8 +4,7 @@ void testing_insert(const char *src, const char *str, s21_size_t start_index,
                     const char *expect) {
   char *actual = (char *)s21_insert(src, str, start_index);
   ck_assert_str_eq(actual, expect);
-  if (actual)
-    free(actual);
+  if (actual) free(actual);
 }
 
 void testing_insert_null(const char *src, const char *str,

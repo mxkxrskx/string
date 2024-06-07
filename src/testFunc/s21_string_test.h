@@ -1,4 +1,8 @@
 #include "../s21_func/s21_string.h"
+#include <check.h>
+#include <string.h>
+
+void run_test_cases(Suite *testcase);
 
 Suite *suite_memchr(void);
 Suite *suite_memcmp(void);
