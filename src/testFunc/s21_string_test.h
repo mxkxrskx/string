@@ -22,3 +22,4 @@ Suite *suite_sprintf_flags_o(void);
 Suite *suite_sprintf_flags_x(void);
 Suite *suite_sprintf_flags_g(void);
 Suite *suite_sprintf_flags_p(void);
+Suite *suite_sprintf_flags_n(void);

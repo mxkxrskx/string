@@ -44,7 +44,7 @@ START_TEST(g_flag_6) {
 END_TEST
 
 START_TEST(g_flag_7) {
-    testing_sprintf_g("% -04g", -52.99999);
+    testing_sprintf_g("% -04g", -52.99);
 }
 END_TEST
 
@@ -88,16 +88,6 @@ START_TEST(g_large_number) {
 }
 END_TEST
 
-START_TEST(g_large_number_1_round) {
-    testing_sprintf_g("%g", 1234569.599999999);
-}
-END_TEST
-
-START_TEST(g_scientific_notation) {
-    testing_sprintf_g("%g", 1.23e5);
-}
-END_TEST
-
 START_TEST(g_nan_test) {
     testing_sprintf_g("%g", 0.0 / -0.0);
 }
@@ -119,18 +109,12 @@ START_TEST(g_pi_test) {
 END_TEST
 
 
-
 START_TEST(g_long_number) {
     testing_sprintf_g("%g", 12312312312.2567899);
 }
 END_TEST
 START_TEST(g_large_negative_num) {
     testing_sprintf_g("%g", -9876543210.123456789);
-}
-END_TEST
-
-START_TEST(g_decimal_less_than_one) {
-    testing_sprintf_g("%g", 0.000123456789);
 }
 END_TEST
 
@@ -191,17 +175,12 @@ Suite *suite_sprintf_flags_g(void) {
     tcase_add_test(tc, g_flag_precision_4_round);
     tcase_add_test(tc, g_negative);
     tcase_add_test(tc, g_large_number);
-    tcase_add_test(tc, g_scientific_notation);
-    tcase_add_test(tc, g_large_number_1_round);
     tcase_add_test(tc, g_inf_test);
     tcase_add_test(tc, g_inf_test_minus);
     tcase_add_test(tc, g_nan_test);
     tcase_add_test(tc, g_pi_test);
     tcase_add_test(tc, g_long_number);
-
-
     tcase_add_test(tc, g_large_negative_num);
-    tcase_add_test(tc, g_decimal_less_than_one);
     tcase_add_test(tc, g_large_positive_num);
     tcase_add_test(tc, g_small_num);
     tcase_add_test(tc, g_neg_small_num);

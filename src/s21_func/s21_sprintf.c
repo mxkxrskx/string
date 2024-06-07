@@ -1,47 +1,10 @@
 #include "s21_sprintf.h"
-static int count = 0;
-// Функция sprintf может вернуть отрицательное значение в случае ошибки. В частности, она может вернуть:
-// -1: Это указывает на то, что произошла ошибка во время форматирования строки, например, недостаточно места в буфере для записи результата. В этом случае результат в буфер не записывается.
-// -2: Это возвращается, если какой-либо из аргументов функции sprintf является нулевым указателем.
-
-int main() {
-
-  // Suite *suite_array[] = {suite_sprintf_flags_d(), suite_sprintf_flags_c(), suite_sprintf_flags_u(), suite_sprintf_flags_s(), suite_sprintf_flags_f(), suite_sprintf_flags_i(), suite_sprintf_flags_e(), 
-  // suite_sprintf_flags_o(), suite_sprintf_flags_x(), suite_sprintf_flags_p(), suite_sprintf_flags_g()};
-  // for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
-  //      i++) {
-  //   run_test_cases(suite_array[i]);
-  //   printf("\n");
-  // }
-
-  //run_test_cases(suite_sprintf_flags_g());
-
-  char str[BUFF] = "\0";
-  char str1[BUFF] = "\0";
-
-  double x = 1.88999;
-  char *format = "%g\n";
-
-  s21_sprintf(str1, format, x);
-  printf("s = %s", str1);
-
-  sprintf(str, format, x);
-  printf("o = %s", str);
-
-}
-
-void run_test_cases(Suite *testcase) {
-  SRunner *sr = srunner_create(testcase);
-  srunner_set_fork_status(sr, CK_NOFORK);
-  srunner_run_all(sr, CK_NORMAL);
-
-  srunner_free(sr);
-}
 
 void set_flags(const char *format, Specifiers *spec) {
     char *tmp = (char *)format;
     tmp++;
     while(1){
+      if(s21_strchr("cdieEfgGosuxXpn", *tmp) || (is_digit(*tmp) && *tmp != '0') || *tmp == '.') break;
       char *tmp2 = tmp;
       if (*tmp == ' ') spec->space = true;
       else if(*tmp == '0' && !is_digit(*(--tmp2))) spec->zero = true;
@@ -52,7 +15,6 @@ void set_flags(const char *format, Specifiers *spec) {
         spec->space = true;
       }
       tmp++;
-      if(s21_strchr("cdieEfgGosuxXpn", *tmp) || (is_digit(*tmp) && *tmp != '0') || *tmp == '.') break;
     }
     if((spec->minus && spec->zero)){
       spec->zero = 0;
@@ -66,7 +28,7 @@ void set_width(const char *format, va_list args, Specifiers *spec) {
   char *tmp = (char *)format;
   tmp++;
   while(*tmp){
-    if((is_digit(*tmp) && *tmp != '0' )|| *tmp == '*'){
+    if((is_digit(*tmp) && *tmp != '0' )|| *tmp == '*' || s21_strchr("cdieEfgGosuxXpn", *tmp) || *tmp == '%'){
       break;
     }
     tmp++;
@@ -312,6 +274,7 @@ void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec,
   if(spec->specifier == 'g' || spec->specifier == 'G'){
     delete_zeros(fracpart);
   }
+  spec->fraction = 0;
 }
 
 void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]){
@@ -379,9 +342,6 @@ void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec){
   if(spec->zero && spec->plus && number[0] != '-'){
     str[0] = '+';
   }
-  if(spec->zero && spec->space && number[0] != '-'){
-    str[0] = ' ';
-  }
 }
 
 void process_f(va_list args, Specifiers *spec, char str[BUFF]){
@@ -398,6 +358,7 @@ void process_f(va_list args, Specifiers *spec, char str[BUFF]){
 }
 
 void postfix_process(int postfix, Specifiers *spec, char postfix_number[BUFF], char c){
+  spec->sign_prefix = c;
   if(postfix >= 0 && postfix < 10){
     postfix_number[0] = c;
     postfix_number[1] = '0';
@@ -409,7 +370,7 @@ void postfix_process(int postfix, Specifiers *spec, char postfix_number[BUFF], c
   }
 }
 
-void getEnumber(char str[BUFF], char number[BUFF], char postfix[BUFF], Specifiers *spec){
+void getEnumber(char str[BUFF], char number[BUFF], char postfix[BUFF]){
   s21_strncat(str, number, s21_strlen(number));
   s21_strncat(str, "e",  2);
   s21_strncat(str, postfix, s21_strlen(postfix));
@@ -423,28 +384,36 @@ void getSTRINGfromE(long double e, Specifiers *spec, char sign, char str[BUFF]){
   postfix_process(spec->postfix, spec, postfix_d, sign);
 
   //собираем число
-  getEnumber(str, number, postfix_d, spec);
+  getEnumber(str, number, postfix_d);
+}
+
+int postfix_minus(long double *e){
+  int postfix = 0;
+  while((int)*e != 0){
+    *e/=10.0;
+    postfix++;
+  }
+  *e*=10;
+  if(postfix != 0) postfix--;
+  return postfix;
 }
 
 void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]){
-  int postfix = 0;
-  while((int)e != 0){
-    e/=10.0;
-    postfix++;
-  }
-  e*=10;
-  if(postfix != 0) postfix--;
-  spec->postfix = postfix;
+  spec->postfix = postfix_minus(&e);
   getSTRINGfromE(e, spec, '+', str);
 }
 
-void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]){
+int postfix_plus(double long *e){
   int postfix = 0;
-  while((int)e == 0){
-    e*=10.0;
+  while((int)*e == 0){
+    *e*=10.0;
     postfix++;
   }
-  spec->postfix = postfix;
+  return postfix;
+}
+
+void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]){
+  spec->postfix = postfix_plus(&e);
   getSTRINGfromE(e, spec, '-', str);
 }
 
@@ -466,28 +435,89 @@ void process_e(va_list args, Specifiers *spec, char str[BUFF]){
   }
 }
 
-int starting_frac(char number[BUFF]){
+int starting_frac(char const number[BUFF]){
   int start_frac = 0;
   while(number[start_frac++] != '.');
   return start_frac;
 }
 
-void round_last_digit(char number[BUFF], Specifiers *spec){
-  // len and \0
-  s21_size_t precision = spec->precision;
-  printf("fracpart : %s, prec = %lu\n", starting_frac(number)+number, precision);
+void round_last_digit(char *buff, Specifiers *spec){
+  int precision = spec->precision;
+  int sig_digs = 0;
+    s21_size_t len = s21_strlen(buff);
+    int not_zero_found = 0;
+    for (s21_size_t i = 0; i < s21_strlen(buff); i++) {
+        if ((buff[i] == '0' && !not_zero_found) || buff[i] == '.')
+            continue;
+        else
+            not_zero_found = 1;
+        if (isdigit(buff[i]) && not_zero_found) {
+            sig_digs++;
+        }
+        if (sig_digs == precision && i + 1 < len) {
+            int next = buff[i + 1] == '.' ? 2 : 1;
+            buff[i] = buff[i + next] - '0' > 5 && buff[i] != '9' ? (char)(buff[i] + 1) : buff[i];
+            buff[i + 1] = '\0';
+            break;
+        }
+    }
+}
 
-  s21_size_t len = s21_strlen(number)-1;
-  do{
-    printf("do\n");
-    if(number[len] < '6' && number[len-1] > number[len]){
-      number[len] = '\0';
+bool count_nines(char *fracpart){
+  int count = 1;
+  bool flag = 1;
+  for(;*fracpart++;){
+    if(*fracpart == '9'){
+      count++;
     }
-    else if(number[len] > '5' && number[len-1] <= number[len]){
-      number[len-1] = number[len-1] == '9' ? '\0' :  number[len-1] + 1;
+  }
+  if(count >= 5){
+    flag = 0;
+  }
+  return flag;
+}
+
+bool is_e_in_str(char *string){
+  bool flag = 0;
+  while(*string++){
+    if('e' == *string){
+      flag = 1;
+      break;
     }
-    len--;
-  }while(precision != len);
+  }
+  return flag;
+}
+
+void handle_float_G(char float_number[BUFF], Specifiers *spec){
+  if(float_number[s21_strlen(float_number)-1] == '.'){
+    float_number[s21_strlen(float_number)-1] = '\0';
+  }
+  else{
+  s21_size_t frac_len = s21_strlen(float_number+starting_frac(float_number));
+  bool firstCondition = frac_len < DEFAULT_PRECISION;
+  bool secondCondition = float_number[s21_strlen(float_number)] == '9';
+
+  (firstCondition && secondCondition) ? 0 : round_last_digit(float_number, spec); 
+  }
+}
+
+void handle_science_number(char science_number[BUFF], Specifiers *spec){
+  round_last_digit(science_number, spec);
+  if(!is_e_in_str(science_number)){
+    char postfix[BUFF] = "\0";
+    postfix_process(spec->postfix, spec, postfix, spec->sign_prefix);
+    s21_strncat(science_number, "e",  2);
+    s21_strncat(science_number, postfix, s21_strlen(postfix));
+  }
+}
+
+void create_science_number(char science_number[BUFF], Specifiers *spec ,long double g){
+  if((int) g == 0){
+    getSTRINGfromEMINUS(g, spec, science_number);
+  }
+  else{
+    getSTRINGfromEPLUS(g, spec, science_number);
+  }
 }
 
 void process_g(va_list args, Specifiers *spec, char str[BUFF]){
@@ -497,36 +527,19 @@ void process_g(va_list args, Specifiers *spec, char str[BUFF]){
     s21_strncat(str, error, s21_strlen(error));
   }
   else{
-    char ENum[BUFF] = "\0";
-    if((int) g == 0){
-      getSTRINGfromEMINUS(g, spec, ENum);
-    }
-    else{
-      getSTRINGfromEPLUS(g, spec, ENum);
-    }
-    char FNum[BUFF] = "\0";
-    char temp[BUFF] = "\0";
-    sprintf(temp, "%g", (double)g);
+    char science_number[BUFF] = "\0";
+    create_science_number(science_number, spec, g);
+
     if(spec->postfix < 4){
-      //FLOAT
-      getSTRINGfromF(g, spec, FNum);
-      if(FNum[s21_strlen(FNum)-1] == '.'){
-        FNum[s21_strlen(FNum)-1] = '\0';
-      }
-      else{
-        printf("frac len = %lu\n", s21_strlen(FNum+starting_frac(FNum)));
-        (s21_strlen(FNum+starting_frac(FNum))) < DEFAULT_PRECISION ? 0 : round_last_digit(FNum, spec); 
-      }
-      printf("ORIGINAL : %s\nFLOAT : %s\n\n", temp, FNum);
-      process_normal_f(FNum, str, spec);
+      char float_number[BUFF] = "\0";
+      getSTRINGfromF(g, spec, float_number);
 
+      handle_float_G(float_number, spec);
+      process_normal_f(float_number, str, spec);
     }
     else{
-      //EXP
-      round_last_digit(ENum, spec);
-      process_normal_f(ENum, str, spec);
-
-      printf("ORIGINAL : %s\nE_NOTATION : %s\n\n", temp, ENum);
+      handle_science_number(science_number, spec);
+      process_normal_f(science_number, str, spec);
     }
   }
 }
@@ -554,6 +567,17 @@ void process_hex_hash(char str[BUFF], Specifiers *spec){
 
 void process_x(va_list args, Specifiers *spec, char str[BUFF]){
   uint64_t x = va_arg(args, uint64_t);
+  switch (spec->length) {
+    case 0:
+      x = (uint32_t)x;
+      break;
+    case 'h':
+      x = (uint16_t)x;
+      break;
+    case 'l':
+      x = (uint64_t)x;
+      break;
+    }
   char hex[BUFF] = "\0";
   if(spec->hash){
     hex[0] = '0';
@@ -574,11 +598,11 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]){
   process_line_with_condition(str, pointer, spec);
 }
 
-void set_spec(const char *format, Specifiers *spec, va_list args,  char str[BUFF]) {
+void handle_specifier(const char *format, Specifiers *spec, va_list args,  char str[BUFF], char *str_start) {
   char *tmp = (char *)format;
   while (1) {
     tmp++;
-    if(s21_strchr("cdieEfgGosuxXpn", *tmp)){
+    if(s21_strchr("cdieEfgGosuxXp", *tmp)){
       spec->specifier = *tmp;
       break;
     }
@@ -629,7 +653,8 @@ int s21_sprintf(char *str, const char *format, ...) {
       set_width(format, args, &spec);
       set_precision(format, args, &spec);
       set_length(format, &spec);
-      set_spec(format, &spec, args, temp);
+      handle_specifier(format, &spec, args, temp, str_beg);
+
       s21_memcpy(str, temp, s21_strlen(temp));
       str += s21_strlen(temp);
       skip_spec_line(&format);

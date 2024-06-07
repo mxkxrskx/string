@@ -18,11 +18,10 @@ typedef struct Specifiers {
   int precision;
   int postfix;
   char specifier;
-
+  char sign_prefix;
 
 } Specifiers;
-//удалить runcase
-//void run_testcase(Suite *testcase);
+
 void set_flags(const char *format, Specifiers *spec);
 void set_width(const char *format, va_list args, Specifiers *spec);
 void set_precision(const char *format, va_list args, Specifiers *spec);

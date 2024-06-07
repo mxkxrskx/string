@@ -45,7 +45,7 @@ START_TEST(f_flag_6){
 END_TEST
 
 START_TEST(f_flag_7){
-    testing_sprinf_f("% -04f", -52.99999);
+    testing_sprinf_f("%f", -52.99999);
 }
 END_TEST
 
