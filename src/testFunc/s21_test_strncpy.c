@@ -30,8 +30,9 @@ END_TEST
 // дест слишком маленький для n
 START_TEST(small_line_in_dest) {
   char dest[100] = "";
-  char src[120] = "Open the door to a world of fantastic possibilities and "
-                  "dive into an ocean of endless ideas and inspiration!";
+  char src[120] =
+      "Open the door to a world of fantastic possibilities and "
+      "dive into an ocean of endless ideas and inspiration!";
   s21_size_t n = 110;
 
   testing_strncpy(dest, src, n);

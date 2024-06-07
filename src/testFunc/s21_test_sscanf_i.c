@@ -116,8 +116,9 @@ END_TEST
 
 START_TEST(sscanf_spec_hi_dec_8) {
   char format[] = "%hi %hi %hi %hi";
-  char str[] = "9223372036854775807 +9223372036854775808 -9223372036854775808 "
-               "-9223372036854775809";
+  char str[] =
+      "9223372036854775807 +9223372036854775808 -9223372036854775808 "
+      "-9223372036854775809";
   unsigned short d1, d2;
   unsigned short q1, q2;
   unsigned short z1, z2;
@@ -246,8 +247,9 @@ END_TEST
 
 START_TEST(sscanf_spec_hi_oct_8) {
   char format[] = "%hi %hi %hi %hi";
-  char str[] = "01777777777777777777777 +02000000000000000000000 "
-               "-02000000000000000000000 -02000000000000000000001";
+  char str[] =
+      "01777777777777777777777 +02000000000000000000000 "
+      "-02000000000000000000000 -02000000000000000000001";
   unsigned short d1, d2;
   unsigned short q1, q2;
   unsigned short z1, z2;
@@ -361,8 +363,9 @@ END_TEST
 
 START_TEST(sscanf_spec_hi_hex_8) {
   char format[] = "%hi %hi %hi %hi";
-  char str[] = "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
-               "-0x348923848239742389328";
+  char str[] =
+      "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
+      "-0x348923848239742389328";
   unsigned short d1, d2;
   unsigned short q1, q2;
   unsigned short z1, z2;
@@ -493,8 +496,9 @@ END_TEST
 
 START_TEST(sscanf_spec_i_dec_8) {
   char format[] = "%i %i %i %i";
-  char str[] = "9223372036854775807 +9223372036854775808 -9223372036854775808 "
-               "-9223372036854775809";
+  char str[] =
+      "9223372036854775807 +9223372036854775808 -9223372036854775808 "
+      "-9223372036854775809";
   unsigned int d1 = 8, d2 = 8;
   unsigned int q1 = 8, q2 = 8;
   unsigned int z1 = 8, z2 = 8;
@@ -624,8 +628,9 @@ END_TEST
 
 START_TEST(sscanf_spec_i_oct_8) {
   char format[] = "%i %i %i %i";
-  char str[] = "01777777777777777777777 +02000000000000000000000 "
-               "-02000000000000000000000 -02000000000000000000001";
+  char str[] =
+      "01777777777777777777777 +02000000000000000000000 "
+      "-02000000000000000000000 -02000000000000000000001";
   unsigned int d1, d2;
   unsigned int q1, q2;
   unsigned int z1, z2;
@@ -739,8 +744,9 @@ END_TEST
 
 START_TEST(sscanf_spec_i_hex_8) {
   char format[] = "%i %i %i %i";
-  char str[] = "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
-               "-0x348923848239742389328";
+  char str[] =
+      "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
+      "-0x348923848239742389328";
   unsigned int d1, d2;
   unsigned int q1, q2;
   unsigned int z1, z2;
@@ -871,8 +877,9 @@ END_TEST
 
 START_TEST(sscanf_spec_li_dec_8) {
   char format[] = "%li %li %li %li";
-  char str[] = "9223372036854775807 +9223372036854775808 -9223372036854775808 "
-               "-9223372036854775809";
+  char str[] =
+      "9223372036854775807 +9223372036854775808 -9223372036854775808 "
+      "-9223372036854775809";
   unsigned long int d1, d2;
   unsigned long int q1, q2;
   unsigned long int z1, z2;
@@ -1003,8 +1010,9 @@ END_TEST
 
 START_TEST(sscanf_spec_li_oct_8) {
   char format[] = "%li %li %li %li";
-  char str[] = "01777777777777777777777 +02000000000000000000000 "
-               "-02000000000000000000000 -02000000000000000000001";
+  char str[] =
+      "01777777777777777777777 +02000000000000000000000 "
+      "-02000000000000000000000 -02000000000000000000001";
   unsigned long int d1, d2;
   unsigned long int q1, q2;
   unsigned long int z1, z2;
@@ -1120,8 +1128,9 @@ END_TEST
 
 START_TEST(sscanf_spec_li_hex_8) {
   char format[] = "%li %li %li %li";
-  char str[] = "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
-               "-0x348923848239742389328";
+  char str[] =
+      "0xFFFFFFFFFFFFFFFF 0x8000000000000000 -0xFFFFFFFFFFFFFFFF "
+      "-0x348923848239742389328";
   unsigned long int d1, d2;
   unsigned long int q1, q2;
   unsigned long int z1, z2;

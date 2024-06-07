@@ -25,8 +25,7 @@ void testing_strtok(char *str, const char *delim) {
     else
       ck_assert_ptr_eq(orig_res, s21_res);
   }
-  if (str_copy)
-    free(str_copy);
+  if (str_copy) free(str_copy);
 }
 
 // самый обычный тест
