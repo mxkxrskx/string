@@ -3,9 +3,8 @@
 void testing_sprintf_e(const char* format, double x) {
     char original[BUFF] = "\0";
     char s21[BUFF] = "\0";
-    sprintf(original, format, x);
-    s21_sprintf(s21, format, x);
-    //ck_assert_str_eq(original, s21);
+    
+    ck_assert_int_eq(sprintf(original, format, x),s21_sprintf(s21, format, x));
     ck_assert_msg(strcmp(original, s21) == 0, "Failed: original: %s, s21: %s\n", original, s21);
 }
 

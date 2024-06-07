@@ -10,7 +10,7 @@ void testing_sprinf_n(const char* format, double x) {
     sprintf(orig, format,  x, &chars_written_original);
     s21_sprintf(s21, format, x, &chars_written_s21);
     
-    //ck_assert_int_eq(chars_written_original, chars_written_s21);
+    ck_assert_int_eq(chars_written_original, chars_written_s21);
     ck_assert_str_eq(orig, s21);
 }
 
