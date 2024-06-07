@@ -9,11 +9,8 @@
 #define BASE_HEX 16
 
 bool s21_isdigit(char c);
-bool s21_isoctal(char c);
 bool s21_isupper(char c);
 char s21_tolower(char c);
-bool s21_ishex(char c);
-
 bool s21_isspace(char c);
 void skip_spaces(char **s);
 
