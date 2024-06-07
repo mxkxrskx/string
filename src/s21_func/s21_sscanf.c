@@ -82,61 +82,61 @@ void parse_width(ScanContext *ctx, char **f) {
 
 void parse_length_description(ScanContext *ctx, char **f) {
   switch (**f) {
-    case 'h':
-      ctx->length = SHORT_INT;
-      (*f)++;
-      break;
-    case 'l':
-      ctx->length = LONG_INT;
-      (*f)++;
-      break;
-    case 'L':
-      ctx->length = LONG_DOUBLE;
-      (*f)++;
-      break;
+  case 'h':
+    ctx->length = SHORT_INT;
+    (*f)++;
+    break;
+  case 'l':
+    ctx->length = LONG_INT;
+    (*f)++;
+    break;
+  case 'L':
+    ctx->length = LONG_DOUBLE;
+    (*f)++;
+    break;
   }
 }
 
 void parse_specifier(char **str, ScanContext *ctx, char **f) {
   switch (**f) {
-    case 'c':
-      handle_char_case(str, ctx);
-      break;
-    case 'd':
-      handle_decimal_case(str, ctx);
-      break;
-    case 'i':
-      handle_integer_case(str, ctx);
-      break;
-    case 'e':
-    case 'E':
-    case 'f':
-    case 'g':
-    case 'G':
-      handle_float_case(str, ctx);
-      break;
-    case 'o':
-      handle_octal_case(str, ctx);
-      break;
-    case 's':
-      handle_string_case(str, ctx);
-      break;
-    case 'u':
-      handle_unsigned_case(str, ctx);
-      break;
-    case 'x':
-    case 'X':
-      handle_hex_case(str, ctx);
-      break;
-    case 'p':
-      handle_pointer_case(str, ctx);
-      break;
-    case 'n':
-      handle_count_case(str, ctx);
-      break;
-    case '%':
-      handle_percent_case(str, ctx);
-      break;
+  case 'c':
+    handle_char_case(str, ctx);
+    break;
+  case 'd':
+    handle_decimal_case(str, ctx);
+    break;
+  case 'i':
+    handle_integer_case(str, ctx);
+    break;
+  case 'e':
+  case 'E':
+  case 'f':
+  case 'g':
+  case 'G':
+    handle_float_case(str, ctx);
+    break;
+  case 'o':
+    handle_octal_case(str, ctx);
+    break;
+  case 's':
+    handle_string_case(str, ctx);
+    break;
+  case 'u':
+    handle_unsigned_case(str, ctx);
+    break;
+  case 'x':
+  case 'X':
+    handle_hex_case(str, ctx);
+    break;
+  case 'p':
+    handle_pointer_case(str, ctx);
+    break;
+  case 'n':
+    handle_count_case(str, ctx);
+    break;
+  case '%':
+    handle_percent_case(str, ctx);
+    break;
   }
   (*f)++;
 }
@@ -217,12 +217,12 @@ void parse_float_specifier(char **str, ScanContext *ctx) {
   long double floating_point = parse_floating_point(str, ctx);
   if (!ctx->suppress && ctx->error == NO_ERROR) {
     switch (ctx->length) {
-      case LONG_DOUBLE:
-        *va_arg(*ctx->args, long double *) = (long double)floating_point;
-        break;
-      default:
-        *va_arg(*ctx->args, float *) = (float)floating_point;
-        break;
+    case LONG_DOUBLE:
+      *va_arg(*ctx->args, long double *) = (long double)floating_point;
+      break;
+    default:
+      *va_arg(*ctx->args, float *) = (float)floating_point;
+      break;
     }
   }
 }
@@ -380,29 +380,29 @@ long double parse_floating_point(char **str, ScanContext *ctx) {
 
 void set_signed_value(long long decimal_integer, ScanContext *ctx) {
   switch (ctx->length) {
-    case SHORT_INT:
-      *va_arg(*ctx->args, short int *) = (short int)decimal_integer;
-      break;
-    case LONG_INT:
-      *va_arg(*ctx->args, long int *) = (long int)decimal_integer;
-      break;
-    default:
-      *va_arg(*ctx->args, int *) = (int)decimal_integer;
-      break;
+  case SHORT_INT:
+    *va_arg(*ctx->args, short int *) = (short int)decimal_integer;
+    break;
+  case LONG_INT:
+    *va_arg(*ctx->args, long int *) = (long int)decimal_integer;
+    break;
+  default:
+    *va_arg(*ctx->args, int *) = (int)decimal_integer;
+    break;
   }
 }
 
 void set_unsigned_value(long long decimal_integer, ScanContext *ctx) {
   switch (ctx->length) {
-    case SHORT_INT:
-      *va_arg(*ctx->args, unsigned short *) = (unsigned short)decimal_integer;
-      break;
-    case LONG_INT:
-      *va_arg(*ctx->args, unsigned long *) = (unsigned long)decimal_integer;
-      break;
-    default:
-      *va_arg(*ctx->args, unsigned int *) = (unsigned int)decimal_integer;
-      break;
+  case SHORT_INT:
+    *va_arg(*ctx->args, unsigned short *) = (unsigned short)decimal_integer;
+    break;
+  case LONG_INT:
+    *va_arg(*ctx->args, unsigned long *) = (unsigned long)decimal_integer;
+    break;
+  default:
+    *va_arg(*ctx->args, unsigned int *) = (unsigned int)decimal_integer;
+    break;
   }
 }
 
@@ -467,16 +467,16 @@ int parse_base(char **str) {
 int skip_base(char **str, int base) {
   int shift = 0;
   switch (base) {
-    case BASE_OCTAL:
-      if (**str == '0') {
-        shift = 1;
-      }
-      break;
-    case BASE_HEX:
-      if (**str == '0' && ((*str)[1] == 'x' || (*str)[1] == 'X')) {
-        shift = 2;
-      }
-      break;
+  case BASE_OCTAL:
+    if (**str == '0') {
+      shift = 1;
+    }
+    break;
+  case BASE_HEX:
+    if (**str == '0' && ((*str)[1] == 'x' || (*str)[1] == 'X')) {
+      shift = 2;
+    }
+    break;
   }
   *str += shift;
   return shift;

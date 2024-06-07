@@ -193,9 +193,8 @@ START_TEST(strings_mixed1) {
   long d1 = 0, d2 = 0;
   long double e1 = 0, e2 = 0;
 
-  const char str[] =
-      "4444444"
-      "eeeeeee\teeeeeee";
+  const char str[] = "4444444"
+                     "eeeeeee\teeeeeee";
   const char fstr[] = "%5s %1s %*s %*s %lu %s %lu %lu %ld %Lf %33s";
 
   char s1[BUFF] = {'\0'};

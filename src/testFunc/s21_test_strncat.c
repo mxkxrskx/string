@@ -1,138 +1,148 @@
 #include "s21_string_test.h"
+START_TEST(all_empty) {
+  char src[] = "";
+  char res[] = "";
+  char expected[] = "";
+  s21_size_t n_byte = 0;
 
-void testing_strncat(char *dest, const void *str, s21_size_t n) {
-  void *orig_res = strncat(dest, str, n);
-  void *s21_res = s21_strncat(dest, str, n);
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
 
-  ck_assert_str_eq(orig_res, s21_res);
-}
-
-START_TEST(zero_dest_zero_n) {
-  char dest[] = "\0";
-  const char *str = "adding";
-  s21_size_t n = 0;
-
-  testing_strncat(dest, str, n);
+  ck_assert_mem_ge(res, expected, n_byte);
 }
 END_TEST
 
-// START_TEST(zero_dest_single_n) {
-//   char dest[] = "\0";
-//   const char *str = "adding";
-//   s21_size_t n = 1;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(zero_dest_normal_n) {
-//   char dest[] = "1";
-//   const char *str = "adding";
-//   s21_size_t n = 4;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(zero_dest_max_n) {
-//   char dest[] = "\0";
-//   const char *str = "adding";
-//   s21_size_t n = 6;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(single_dest_zero_n) {
-//   char dest[] = "1";
-//   const char *str = "adding";
-//   s21_size_t n = 0;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(single_dest_single_n) {
-//   char dest[] = "1";
-//   const char *str = "adding";
-//   s21_size_t n = 1;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(single_dest_normal_n) {
-//   char dest[] = "1";
-//   const char *str = "adding";
-//   s21_size_t n = 4;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(single_dest_max_n) {
-//   char dest[] = "1";
-//   const char *str = "adding";
-//   s21_size_t n = 6;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(normal_dest_zero_n) {
-//   char dest[] = "123";
-//   const char *str = "adding";
-//   s21_size_t n = 0;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(normal_dest_single_n) {
-//   char dest[] = "123";
-//   const char *str = "adding";
-//   s21_size_t n = 1;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(normal_dest_normal_n) {
-//   char dest[] = "123";
-//   const char *str = "adding";
-//   s21_size_t n = 4;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
-//
-// START_TEST(normal_dest_max_n) {
-//   char dest[] = "123";
-//   const char *str = "adding";
-//   s21_size_t n = 6;
-//
-//   testing_strncat(dest, str, n);
-// }
-// END_TEST
+START_TEST(zero_byte) {
+  char src[] = "example";
+  char res[10] = "";
+  char expected[10] = "";
+  s21_size_t n_byte = 0;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(empty_src) {
+  char src[] = "";
+  char res[10] = "cd";
+  char expected[10] = "cd";
+  s21_size_t n_byte = 0;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(example) {
+  char src[] = "example";
+  char res[10] = "tc";
+  char expected[10] = "tc";
+  s21_size_t n_byte = 5;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(string) {
+  char src[] = "example";
+  char res[25] = "primer";
+  char expected[25] = "primer";
+  s21_size_t n_byte = 6;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(testcase) {
+  char src[] = "testcase";
+  char res[25] = "testcase";
+  char expected[25] = "testcase";
+  s21_size_t n_byte = 5;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(testcase2) {
+  char src[] = "testcase";
+  char res[25] = "testcase";
+  char expected[25] = "testcase";
+  s21_size_t n_byte = 0;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(testcase3) {
+  char src[] = "testcase";
+  char res[25] = "testcase";
+  char expected[25] = "testcase";
+  s21_size_t n_byte = 1;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(testcase4) {
+  char src[] = "testcase";
+  char res[25] = "testcase";
+  char expected[25] = "testcase";
+  s21_size_t n_byte = 10;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
+
+START_TEST(zero_char) {
+  char src[] = "\0";
+  char res[25] = "testcase";
+  char expected[25] = "testcase";
+  s21_size_t n_byte = 1;
+
+  s21_strncat(res, src, n_byte);
+  strncat(expected, src, n_byte);
+
+  ck_assert_mem_ge(res, expected, n_byte);
+}
+END_TEST
 
 Suite *suite_strncat(void) {
   Suite *s = suite_create("STRNCAT");
-  TCase *tc = tcase_create("memset_tc");
+  TCase *tc = tcase_create("strncat_tc");
 
-  tcase_add_test(tc, zero_dest_zero_n);
-  //  tcase_add_test(tc, zero_dest_single_n);
-  //  tcase_add_test(tc, zero_dest_normal_n);
-  //  tcase_add_test(tc, zero_dest_max_n);
-  //
-  //  tcase_add_test(tc, single_dest_zero_n);
-  //  tcase_add_test(tc, single_dest_single_n);
-  //  tcase_add_test(tc, single_dest_normal_n);
-  //  tcase_add_test(tc, single_dest_max_n);
-  //
-  //  tcase_add_test(tc, normal_dest_zero_n);
-  //  tcase_add_test(tc, normal_dest_single_n);
-  //  tcase_add_test(tc, normal_dest_normal_n);
-  //  tcase_add_test(tc, normal_dest_max_n);
+  tcase_add_test(tc, all_empty);
+  tcase_add_test(tc, zero_byte);
+  tcase_add_test(tc, empty_src);
+  tcase_add_test(tc, example);
+  tcase_add_test(tc, string);
+  tcase_add_test(tc, testcase);
+  tcase_add_test(tc, testcase2);
+  tcase_add_test(tc, testcase3);
+  tcase_add_test(tc, testcase4);
+  tcase_add_test(tc, zero_char);
 
   suite_add_tcase(s, tc);
   return s;

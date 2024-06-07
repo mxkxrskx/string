@@ -33,6 +33,7 @@ int s21_sprintf(char *str, const char *format, ...);
 int s21_strncmp(const char *str1, const char *str2, s21_size_t n);
 char *s21_strtok(char *str, const char *delim);
 s21_size_t s21_strcspn(const char *str1, const char *str2);
+char *s21_strstr(const char *haystack, const char *needle);
 void *s21_to_lower(const char *str);
 void *s21_to_upper(const char *str);
 void *s21_trim(const char *src, const char *trim_chars);

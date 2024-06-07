@@ -13,7 +13,8 @@ char *s21_strpbrk(const char *str1, const char *str2) {
       str2++;
     }
     str1++;
-    if (flag) break;
+    if (flag)
+      break;
   }
   return c;
 }

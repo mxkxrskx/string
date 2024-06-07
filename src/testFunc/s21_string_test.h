@@ -29,6 +29,7 @@ Suite *suite_strncpy(void);
 Suite *suite_strncmp(void);
 Suite *suite_strtok(void);
 Suite *suite_strcspn(void);
+Suite *suite_strstr(void);
 Suite *suite_to_lower(void);
 Suite *suite_to_upper(void);
 Suite *suite_trim(void);

@@ -3,7 +3,8 @@
 void testing_trim(const char *src, const char *trim_chars, const char *expect) {
   char *actual = (char *)s21_trim(src, trim_chars);
   ck_assert_str_eq(actual, expect);
-  if (actual) free(actual);
+  if (actual)
+    free(actual);
 }
 
 void testing_trim_null(const char *src, const char *trim_chars) {
