@@ -7,4 +7,4 @@
 int parse_number(char **ptr, int base, long long *num, int len);
 long parse_number1(char **ptr, int base, int len);
 
-#endif // S21_PARSE_NUMBER_H
+#endif  // S21_PARSE_NUMBER_H

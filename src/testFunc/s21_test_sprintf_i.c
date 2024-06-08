@@ -66,12 +66,12 @@ START_TEST(test_sprintf_i_hex) {
 }
 END_TEST
 
-//START_TEST(test_sprintf_i_binary) {
-//  int x = 0b1010;
-//  const char *format = "The value of x is %i";
-//  testing_sprinf_i(format, x);
-//}
-//END_TEST
+// START_TEST(test_sprintf_i_binary) {
+//   int x = 0b1010;
+//   const char *format = "The value of x is %i";
+//   testing_sprinf_i(format, x);
+// }
+// END_TEST
 
 START_TEST(test_sprintf_i_octal_with_plus) {
   int x = 012;
@@ -108,7 +108,7 @@ Suite *suite_sprintf_flags_i(void) {
   tcase_add_test(tc, test_sprintf_i_INT_MIN);
   tcase_add_test(tc, test_sprintf_i_octal);
   tcase_add_test(tc, test_sprintf_i_hex);
-//  tcase_add_test(tc, test_sprintf_i_binary);
+  //  tcase_add_test(tc, test_sprintf_i_binary);
   tcase_add_test(tc, test_sprintf_i_octal_with_plus);
   tcase_add_test(tc, test_sprintf_i_hex_with_zero);
 

@@ -14,4 +14,4 @@ char s21_tolower(char c);
 bool s21_isspace(char c);
 void skip_spaces(char **s);
 
-#endif // CHAR_UTILS_H
+#endif  // CHAR_UTILS_H

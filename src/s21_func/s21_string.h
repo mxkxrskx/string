@@ -1,21 +1,20 @@
 #ifndef PROJECT_S21_STRING_H
 #define PROJECT_S21_STRING_H
 
-
 #define S21_NULL ((void *)0)
 #define BUFF 4096
 
 #include <ctype.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 typedef long unsigned int s21_size_t;
 
-//stringFunc
+// stringFunc
 char *s21_strncat(char *dest, const char *src, s21_size_t n);
 void *s21_memset(void *str, int c, s21_size_t n);
 void *s21_memchr(const void *str, int c, s21_size_t n);
@@ -39,5 +38,4 @@ void *s21_to_upper(const char *str);
 void *s21_trim(const char *src, const char *trim_chars);
 void *s21_insert(const char *src, const char *str, s21_size_t start_index);
 
-#endif //PROJECT_S21_STRING_H
-
+#endif  // PROJECT_S21_STRING_H

@@ -1,9 +1,10 @@
+#include <stdint.h>
+
 #include "s21_char_utils.h"
 #include "s21_parse_number.h"
 #include "s21_string.h"
-#include <stdint.h>
 
-#define DEFAULT_PRECISION 6 
+#define DEFAULT_PRECISION 6
 
 typedef struct Specifiers {
   bool space;
@@ -27,8 +28,10 @@ void set_width(const char *format, va_list args, Specifiers *spec);
 void set_precision(const char *format, va_list args, Specifiers *spec);
 void set_length(const char *format, Specifiers *spec);
 
-void process_line_with_condition(char str1[BUFF], char str2[BUFF], Specifiers *spec);
-void minus_process(char str1[BUFF], char str2[BUFF], Specifiers *spec, s21_size_t width);
+void process_line_with_condition(char str1[BUFF], char str2[BUFF],
+                                 Specifiers *spec);
+void minus_process(char str1[BUFF], char str2[BUFF], Specifiers *spec,
+                   s21_size_t width);
 void getSTRING(char str1[BUFF], char str2[BUFF], char c, s21_size_t width);
 void process_normal_f(char number[BUFF], char str[BUFF], Specifiers *spec);
 void getEnumber(char str[BUFF], char number[BUFF], char postfix[BUFF]);
@@ -45,7 +48,8 @@ void process_o(va_list args, Specifiers *spec, char str[BUFF]);
 void process_x(va_list args, Specifiers *spec, char str[BUFF]);
 void process_p(va_list args, Specifiers *spec, char str[BUFF]);
 
-void handle_specifier(const char *format, Specifiers *spec, va_list args,  char str[BUFF]);
+void handle_specifier(const char *format, Specifiers *spec, va_list args,
+                      char str[BUFF]);
 
 void getSTRINGfromNUM(int64_t num, int base, char tmp1[], Specifiers *spec);
 void getSTRINGfromE(long double e, Specifiers *spec, char sign, char str[BUFF]);
@@ -53,8 +57,9 @@ void getSTRINGfromEPLUS(long double e, Specifiers *spec, char str[BUFF]);
 void getSTRINGfromEMINUS(long double e, Specifiers *spec, char str[BUFF]);
 
 void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]);
-void create_left_part(char intpart[BUFF], long double left, long double *right, Specifiers *spec);
-void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec, int zeros);
-
+void create_left_part(char intpart[BUFF], long double left, long double *right,
+                      Specifiers *spec);
+void create_right_part(char fracpart[BUFF], long double right, Specifiers *spec,
+                       int zeros);
 
 void skip_spec_line(const char **format, char **str, Specifiers *spec);

@@ -99,9 +99,9 @@ void get_line_c(wchar_t c, Specifiers *spec, char str[BUFF]) {
 }
 
 void process_c(va_list args, Specifiers *spec, char str[BUFF]) {
-  #if defined(__linux__)
+#if defined(__linux__)
   spec->zero = 0;
-  #endif
+#endif
   if (spec->length == 'l') {
     wchar_t c = va_arg(args, wchar_t);
     get_line_c(c, spec, str);
@@ -166,11 +166,11 @@ void switchOffSpecU(Specifiers *spec) {
 void process_u(va_list args, Specifiers *spec, char str[BUFF]) {
   uint64_t u = va_arg(args, uint64_t);
   switch (spec->length) {
-  case 0:
-    u = (uint32_t)u;
-    break;
-  case 'h':
-    u = (uint16_t)u;
+    case 0:
+      u = (uint32_t)u;
+      break;
+    case 'h':
+      u = (uint16_t)u;
   }
   char number[BUFF] = "\0";
   getSTRINGfromNUM(u, BASE_DECIMAL, number, spec);
@@ -181,12 +181,12 @@ void process_u(va_list args, Specifiers *spec, char str[BUFF]) {
 void process_d(va_list args, Specifiers *spec, char str[BUFF]) {
   int64_t d = va_arg(args, int64_t);
   switch (spec->length) {
-  case 0:
-    d = (int32_t)d;
-    break;
-  case 'h':
-    d = (int16_t)d;
-    break;
+    case 0:
+      d = (int32_t)d;
+      break;
+    case 'h':
+      d = (int16_t)d;
+      break;
   }
   char number[BUFF] = "\0";
   getSTRINGfromNUM(d, BASE_DECIMAL, number, spec);
@@ -323,16 +323,15 @@ char *commonAction(long double *x, Specifiers *spec, va_list args) {
   }
   char *error_massage = S21_NULL;
   if (isnan(*x)) {
-    #if defined(__linux__)
-    if(signbit(*x)){
+#if defined(__linux__)
+    if (signbit(*x)) {
       error_massage = "-nan";
-    }
-    else{
+    } else {
       error_massage = "nan";
     }
-    #else
+#else
     error_massage = "nan";
-    #endif
+#endif
   } else if (isinf(*x) && signbit(*x)) {
     error_massage = "-inf";
   } else if (isinf(*x) && !signbit(*x)) {
@@ -411,8 +410,7 @@ int postfix_minus(long double *e) {
     postfix++;
   }
   *e *= 10;
-  if (postfix != 0)
-    postfix--;
+  if (postfix != 0) postfix--;
   return postfix;
 }
 
@@ -515,7 +513,8 @@ void handle_float_G(char float_number[BUFF], Specifiers *spec) {
     bool firstCondition = frac_len < DEFAULT_PRECISION;
     bool secondCondition = float_number[s21_strlen(float_number)] == '9';
 
-    if (!(firstCondition && secondCondition)) round_last_digit(float_number, spec);
+    if (!(firstCondition && secondCondition))
+      round_last_digit(float_number, spec);
   }
 }
 
@@ -584,15 +583,15 @@ void process_hex_hash(char str[BUFF], Specifiers *spec) {
 void process_x(va_list args, Specifiers *spec, char str[BUFF]) {
   uint64_t x = va_arg(args, uint64_t);
   switch (spec->length) {
-  case 0:
-    x = (uint32_t)x;
-    break;
-  case 'h':
-    x = (uint16_t)x;
-    break;
-  case 'l':
-    x = (uint64_t)x;
-    break;
+    case 0:
+      x = (uint32_t)x;
+      break;
+    case 'h':
+      x = (uint16_t)x;
+      break;
+    case 'l':
+      x = (uint64_t)x;
+      break;
   }
   char hex[BUFF] = "\0";
   if (spec->hash) {
@@ -611,7 +610,7 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]) {
   pointer[0] = '0';
   pointer[1] = 'x';
   getSTRINGfromNUM(p, BASE_HEX, pointer + 2, spec);
-  #if defined (__linux__)
+#if defined(__linux__)
   if (pointer[0] != '-' && spec->space == 1) {
     str[0] = ' ';
     str++;
@@ -619,7 +618,7 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]) {
   if (spec->zero && spec->plus && pointer[0] != '-' && spec->precision == 0) {
     str[0] = '+';
   }
-  #endif
+#endif
   process_line_with_condition(str, pointer, spec);
 }
 

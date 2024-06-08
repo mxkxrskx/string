@@ -3,10 +3,10 @@
 void testing_sprintf_p(const char *format, void *ptr) {
   char original[BUFF] = "\0";
   char s21[BUFF] = "\0";
-    sprintf(original, format, ptr);
-    s21_sprintf(s21, format, ptr);
-//  ck_assert_int_eq(sprintf(original, format, ptr),
-//                   s21_sprintf(s21, format, ptr));
+  sprintf(original, format, ptr);
+  s21_sprintf(s21, format, ptr);
+  //  ck_assert_int_eq(sprintf(original, format, ptr),
+  //                   s21_sprintf(s21, format, ptr));
   ck_assert_str_eq(original, s21);
 }
 
