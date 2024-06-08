@@ -33,6 +33,7 @@ clang:
 
 test: clean s21_string.a
 	$(CC) $(CFLAGS) $(TESTS) s21_string.a -o s21_test $(TEST_FLAGS)
+	./s21_test
 	
 gcov_report: clean
 	$(CC) $(GCOV_FLAGS) $(TESTS) $(SOURCES) -o report.out $(TEST_FLAGS)
