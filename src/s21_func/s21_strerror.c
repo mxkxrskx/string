@@ -259,7 +259,7 @@ char *s21_strerror(int errnum) {
   if (errnum >= MIN_ERROR && errnum < MAX_ERROR) {
     s21_memcpy(error_massage, error_list_mac[errnum], BUFF);
   } else {
-    sprintf(error_massage, "Unknown error: %d", errnum);
+    s21_sprintf(error_massage, "Unknown error: %d", errnum);
   }
   return error_massage;
 }
@@ -269,7 +269,7 @@ char *s21_strerror(int errnum) {
   if (errnum >= MIN_ERROR && errnum < MAX_ERROR) {
     s21_memcpy(error_massage, error_list_linux[errnum], BUFF);
   } else {
-    sprintf(error_massage, "Unknown error %d", errnum);
+    s21_sprintf(error_massage, "Unknown error %d", errnum);
   }
   return error_massage;
 }

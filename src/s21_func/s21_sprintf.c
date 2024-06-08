@@ -700,7 +700,7 @@ int s21_sprintf(char *str, const char *format, ...) {
       *str++ = *format++;
     }
   }
-
+  *str = '\0';
   va_end(args);
   return str - str_beg;
 }
