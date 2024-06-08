@@ -38,7 +38,6 @@ gcov_report: clean
 	$(CC) $(GCOV_FLAGS) $(TESTS) $(SOURCES) -o report.out $(TEST_FLAGS)
 	./report.out
 	lcov -t "gcov_report" -o coverage.info -c -d .
-	lcov -r coverage.info "/usr/local/lib/gcc/current/gcc/x86_64-apple-darwin22/13/include-fixed/" -o coverage.info
 	genhtml -o ./report coverage.info
 	rm -f *.gcno *.gcda *.info *.gcov
 	open ./report/index-sort-f.html
