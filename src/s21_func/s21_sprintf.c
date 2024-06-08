@@ -99,6 +99,9 @@ void get_line_c(wchar_t c, Specifiers *spec, char str[BUFF]) {
 }
 
 void process_c(va_list args, Specifiers *spec, char str[BUFF]) {
+  #if defined(__linux__)
+  spec->zero = 0;
+  #endif
   if (spec->length == 'l') {
     wchar_t c = va_arg(args, wchar_t);
     get_line_c(c, spec, str);
@@ -320,7 +323,16 @@ char *commonAction(long double *x, Specifiers *spec, va_list args) {
   }
   char *error_massage = S21_NULL;
   if (isnan(*x)) {
+    #if defined(__linux__)
+    if(signbit(*x)){
+      error_massage = "-nan";
+    }
+    else{
+      error_massage = "nan";
+    }
+    #else
     error_massage = "nan";
+    #endif
   } else if (isinf(*x) && signbit(*x)) {
     error_massage = "-inf";
   } else if (isinf(*x) && !signbit(*x)) {
@@ -599,6 +611,15 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]) {
   pointer[0] = '0';
   pointer[1] = 'x';
   getSTRINGfromNUM(p, BASE_HEX, pointer + 2, spec);
+  #if defined (__linux__)
+  if (pointer[0] != '-' && spec->space == 1) {
+    str[0] = ' ';
+    str++;
+  }
+  if (spec->zero && spec->plus && pointer[0] != '-' && spec->precision == 0) {
+    str[0] = '+';
+  }
+  #endif
   process_line_with_condition(str, pointer, spec);
 }
 
