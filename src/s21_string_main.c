@@ -9,7 +9,12 @@ int main() {
       suite_to_upper(), suite_trim(),     suite_insert(),      suite_sscanf_c(),
       suite_sscanf_d(), suite_sscanf_f(), suite_sscanf_i(),    suite_sscanf_n(),
       suite_sscanf_o(), suite_sscanf_p(), suite_sscanf_perc(), suite_sscanf_s(),
-      suite_sscanf_u(), suite_sscanf_x()};
+      suite_sscanf_u(), suite_sscanf_x(), suite_sprintf_flags_d(), suite_sprintf_flags_c(),
+      suite_sprintf_flags_u(), suite_sprintf_flags_s(),
+      suite_sprintf_flags_f(), suite_sprintf_flags_i(),
+      suite_sprintf_flags_e(), suite_sprintf_flags_o(),
+      suite_sprintf_flags_x(), suite_sprintf_flags_p(),
+      suite_sprintf_flags_g(), suite_sprintf_flags_n()};
   for (unsigned long i = 0; i < sizeof(suite_array) / sizeof(suite_array[0]);
        i++) {
     run_test_cases(suite_array[i]);
