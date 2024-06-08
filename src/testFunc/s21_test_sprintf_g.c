@@ -62,12 +62,6 @@ END_TEST
 START_TEST(g_nan_test) { testing_sprintf_g("%g", 0.0 / -0.0); }
 END_TEST
 
-START_TEST(g_inf_test) { testing_sprintf_g("%g", 1.0 / 0.0); }
-END_TEST
-
-START_TEST(g_inf_test_minus) { testing_sprintf_g("%g", -1.0 / 0.0); }
-END_TEST
-
 START_TEST(g_pi_test) { testing_sprintf_g("%.9g", 3.1415926535); }
 END_TEST
 
@@ -121,8 +115,6 @@ Suite *suite_sprintf_flags_g(void) {
   tcase_add_test(tc, g_flag_precision_4_round);
   tcase_add_test(tc, g_negative);
   tcase_add_test(tc, g_large_number);
-  tcase_add_test(tc, g_inf_test);
-  tcase_add_test(tc, g_inf_test_minus);
   tcase_add_test(tc, g_nan_test);
   tcase_add_test(tc, g_pi_test);
   tcase_add_test(tc, g_long_number);

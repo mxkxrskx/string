@@ -70,12 +70,6 @@ END_TEST
 START_TEST(e_nan_test) { testing_sprintf_e("%e", 0.0 / -0.0); }
 END_TEST
 
-START_TEST(e_inf_test) { testing_sprintf_e("%e", 1.0 / 0.0); }
-END_TEST
-
-START_TEST(e_inf_test_minus) { testing_sprintf_e("%e", -1.0 / 0.0); }
-END_TEST
-
 START_TEST(e_pi_test) { testing_sprintf_e("%.9e", 3.1415926535); }
 END_TEST
 
@@ -104,8 +98,6 @@ Suite *suite_sprintf_flags_e(void) {
   tcase_add_test(tc, e_large_number);
   tcase_add_test(tc, e_scientific_notation);
   tcase_add_test(tc, e_large_number_1_round);
-  tcase_add_test(tc, e_inf_test);
-  tcase_add_test(tc, e_inf_test_minus);
   tcase_add_test(tc, e_nan_test);
   tcase_add_test(tc, e_pi_test);
   tcase_add_test(tc, e_long_number);

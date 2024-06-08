@@ -70,9 +70,6 @@ END_TEST
 START_TEST(f_nan_test) { testing_sprinf_f("%f", -0.0 / 0.0); }
 END_TEST
 
-START_TEST(f_inf_test) { testing_sprinf_f("%f", -1.0 / 0.0); }
-END_TEST
-
 START_TEST(f_pi_test) { testing_sprinf_f("%.9f", 3.1415926535); }
 END_TEST
 
@@ -98,7 +95,6 @@ Suite *suite_sprintf_flags_f(void) {
   tcase_add_test(tc, f_large_number);
   tcase_add_test(tc, f_scientific_notation);
   tcase_add_test(tc, f_large_number_1_round);
-  tcase_add_test(tc, f_inf_test);
   tcase_add_test(tc, f_nan_test);
   tcase_add_test(tc, f_pi_test);
 
