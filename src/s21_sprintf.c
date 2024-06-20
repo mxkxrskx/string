@@ -18,9 +18,6 @@ void set_flags(const char *format, Specifiers *spec) {
       spec->plus = true;
     else if (*tmp == '#')
       spec->hash = true;
-    else {
-      spec->space = true;
-    }
     tmp++;
   }
   if ((spec->minus && spec->zero)) {
@@ -35,8 +32,8 @@ void set_width(const char *format, va_list args, Specifiers *spec) {
   char *tmp = (char *)format;
   tmp++;
   while (*tmp) {
-    if ((s21_isdigit(*tmp) && *tmp != '0') || *tmp == '*' ||
-        s21_strchr("cdieEfgGosuxXpn", *tmp) || *tmp == '%') {
+    if (*tmp == '*' || (s21_isdigit(*tmp) && *tmp != '0') ||
+        s21_strchr("cdieEfgGosuxXpn", *tmp) || *tmp == '.') {
       break;
     }
     tmp++;
@@ -51,16 +48,25 @@ void set_width(const char *format, va_list args, Specifiers *spec) {
 void set_precision(const char *format, va_list args, Specifiers *spec) {
   char *tmp = (char *)format + 1;
   while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
-    if (*tmp == '.') {
-      tmp++;
-      if (*tmp == '*') {
-        spec->precision = va_arg(args, int);
-      } else {
-        spec->precision = parse_number1(&tmp, BASE_DECIMAL, INT_MAX);
-      }
+    tmp++;
+  }
+  int flag = 0;
+  while (*tmp != '.') {
+    tmp--;
+    if (*tmp == '%') {
+      flag = 1;
       break;
     }
+  }
+  if (!flag) {
     tmp++;
+    if (*tmp == '*') {
+      spec->precision = va_arg(args, int);
+      spec->set_precision = 1;
+    } else {
+      spec->precision = parse_number1(&tmp, BASE_DECIMAL, INT_MAX);
+      spec->set_precision = 1;
+    }
   }
 }
 
@@ -70,7 +76,7 @@ void set_length(const char *format, Specifiers *spec) {
     tmp++;
   }
   tmp--;
-  if (*tmp == 'h' || *tmp == 'l') {
+  if (*tmp == 'h' || *tmp == 'l' || *tmp == 'L') {
     spec->length = *tmp;
   }
 }
@@ -115,15 +121,17 @@ void getSTRINGfromNUM(int64_t num, int base, char tmp1[], Specifiers *spec) {
   if (spec->specifier == 'u') {
     num = (uint64_t)num;
   }
-  char tmp[BUFF] = "\0";
+  char tmp[BUFF] = {'\0'};
   int index = BUFF - 2;
-  int temp = num;
+  int64_t temp = num;
+
   num = num > 0 ? num : -num;
   if (num == 0) {
     tmp[index] = '0';
   }
   while (num > 0) {
-    tmp[--index] = "0123456789abcdef"[num % base];
+    index--;
+    tmp[index] = "0123456789abcdef"[num % base];
     num /= base;
   }
   int precision = spec->precision - s21_strlen(tmp + index) -
@@ -180,6 +188,7 @@ void process_u(va_list args, Specifiers *spec, char str[BUFF]) {
 
 void process_d(va_list args, Specifiers *spec, char str[BUFF]) {
   int64_t d = va_arg(args, int64_t);
+
   switch (spec->length) {
     case 0:
       d = (int32_t)d;
@@ -194,6 +203,9 @@ void process_d(va_list args, Specifiers *spec, char str[BUFF]) {
     str[0] = ' ';
     str++;
   }
+  if (spec->space && number[0] != '-' && spec->zero == 0) {
+    str[0] = ' ';
+  }
   if (spec->space == 1 && number[0] == '-') {
     spec->space = 0;
   }
@@ -203,6 +215,9 @@ void process_d(va_list args, Specifiers *spec, char str[BUFF]) {
   }
   if (spec->zero && spec->plus && number[0] != '-' && spec->precision == 0) {
     str[0] = '+';
+  }
+  if (spec->set_precision == 1 && spec->precision == 0 && d == 0) {
+    str[0] = '\0';
   }
 }
 
@@ -232,14 +247,20 @@ void process_s(va_list args, Specifiers *spec, char str[BUFF]) {
   switchOffSpec(spec);
   if (spec->length == 'l') {
     wchar_t *s = va_arg(args, wchar_t *);
-    char temp[BUFF] = "\0";
-    wcstombs(temp, s, BUFF);
-    get_line_s(str, temp, spec);
+    if (s) {
+      char temp[BUFF] = "\0";
+      s21_memset(temp, 0, BUFF - 1);
+      wcstombs(temp, s, BUFF);
+      get_line_s(str, temp, spec);
+    }
   } else {
     char *s = va_arg(args, char *);
-    char temp[BUFF] = "\0";
-    s21_memcpy(temp, s, s21_strlen(s));
-    get_line_s(str, temp, spec);
+    if (s) {
+      char temp[BUFF] = "\0";
+      s21_memset(temp, 0, BUFF - 1);
+      s21_memcpy(temp, s, s21_strlen(s));
+      get_line_s(str, temp, spec);
+    }
   }
 }
 
@@ -309,6 +330,9 @@ void getSTRINGfromF(long double f, Specifiers *spec, char str[BUFF]) {
   create_right_part(fracpart, right, spec, zeros);
 
   s21_strncat(intpart, fracpart, s21_strlen(fracpart));
+  if (intpart[s21_strlen(intpart) - 1] == '.') {
+    intpart[s21_strlen(intpart) - 1] = '\0';
+  }
   s21_strncat(str, intpart, s21_strlen(intpart));
 }
 
@@ -318,9 +342,10 @@ char *commonAction(long double *x, Specifiers *spec, va_list args) {
   } else {
     *x = va_arg(args, double);
   }
-  if (spec->precision == 0) {
+  if (spec->precision == 0 && spec->set_precision == 0) {
     spec->precision = DEFAULT_PRECISION;
   }
+
   char *error_massage = S21_NULL;
   if (isnan(*x)) {
 #if defined(__linux__)
@@ -367,6 +392,9 @@ void process_f(va_list args, Specifiers *spec, char str[BUFF]) {
   } else {
     char number[BUFF] = "\0";
     getSTRINGfromF(f, spec, number);
+    if (spec->space && number[0] != '-' && spec->zero == 0) {
+      str[0] = ' ';
+    }
     process_normal_f(number, str, spec);
   }
 }
@@ -451,8 +479,9 @@ void process_e(va_list args, Specifiers *spec, char str[BUFF]) {
 
 int starting_frac(char const number[BUFF]) {
   int start_frac = 0;
-  while (number[start_frac++] != '.')
-    ;
+  while (number[start_frac] != '.' && number[start_frac] != '\0') {
+    start_frac++;
+  }
   return start_frac;
 }
 
@@ -505,17 +534,12 @@ bool is_e_in_str(char *string) {
 }
 
 void handle_float_G(char float_number[BUFF], Specifiers *spec) {
-  if (float_number[s21_strlen(float_number) - 1] == '.') {
-    float_number[s21_strlen(float_number) - 1] = '\0';
-  } else {
-    s21_size_t frac_len =
-        s21_strlen(float_number + starting_frac(float_number));
-    bool firstCondition = frac_len < DEFAULT_PRECISION;
-    bool secondCondition = float_number[s21_strlen(float_number)] == '9';
+  s21_size_t frac_len = s21_strlen(float_number + starting_frac(float_number));
+  bool firstCondition = frac_len < DEFAULT_PRECISION;
+  bool secondCondition = float_number[s21_strlen(float_number)] == '9';
 
-    if (!(firstCondition && secondCondition))
-      round_last_digit(float_number, spec);
-  }
+  if (!(firstCondition && secondCondition))
+    round_last_digit(float_number, spec);
 }
 
 void handle_science_number(char science_number[BUFF], Specifiers *spec) {
@@ -594,14 +618,24 @@ void process_x(va_list args, Specifiers *spec, char str[BUFF]) {
       break;
   }
   char hex[BUFF] = "\0";
-  if (spec->hash) {
+  if (spec->hash && x != 0) {
     hex[0] = '0';
     hex[1] = 'x';
+  } else {
+    spec->hash = 0;
   }
+  char temp[BUFF] = "\0";
   getSTRINGfromNUM(x, BASE_HEX, hex + spec->hash + spec->hash, spec);
-  process_line_with_condition(str, hex, spec);
-  process_hex_hash(str, spec);
-  spec->specifier == 'X' ? s21_to_upper(str) : 0;
+  process_line_with_condition(temp, hex, spec);
+  process_hex_hash(temp, spec);
+  if (spec->specifier == 'X') {
+    void *ptemp = s21_to_upper(temp);
+    if (ptemp != S21_NULL) {
+      s21_memcpy(temp, (char *)ptemp, s21_strlen(temp));
+      free(ptemp);
+    }
+  }
+  s21_strncpy(str, temp, s21_strlen(temp));
 }
 
 void process_p(va_list args, Specifiers *spec, char str[BUFF]) {
@@ -609,29 +643,37 @@ void process_p(va_list args, Specifiers *spec, char str[BUFF]) {
   char pointer[BUFF] = "\0";
   pointer[0] = '0';
   pointer[1] = 'x';
-  getSTRINGfromNUM(p, BASE_HEX, pointer + 2, spec);
+  if (!p) {
 #if defined(__linux__)
-  if (pointer[0] != '-' && spec->space == 1) {
-    str[0] = ' ';
-    str++;
-  }
-  if (spec->zero && spec->plus && pointer[0] != '-' && spec->precision == 0) {
-    str[0] = '+';
-  }
+    s21_memcpy(pointer, "(nil)", 6);
+    process_line_with_condition(str, pointer, spec);
 #endif
-  process_line_with_condition(str, pointer, spec);
+#if defined(__APPLE__) && defined(__MACH__)
+    s21_memcpy(pointer, "0x0", 4);
+    process_line_with_condition(str, pointer, spec);
+#endif
+  } else {
+    getSTRINGfromNUM(p, BASE_HEX, pointer + 2, spec);
+#if defined(__linux__)
+    if (pointer[0] != '-' && spec->space == 1) {
+      str[0] = ' ';
+      str++;
+    }
+    if (spec->zero && spec->plus && pointer[0] != '-' && spec->precision == 0) {
+      str[0] = '+';
+    }
+#endif
+    process_line_with_condition(str, pointer, spec);
+  }
 }
 
 void handle_specifier(const char *format, Specifiers *spec, va_list args,
                       char str[BUFF]) {
   char *tmp = (char *)format;
-  while (1) {
+  while (!s21_strchr("cdieEfgGosuxXpn", *tmp)) {
     tmp++;
-    if (s21_strchr("cdieEfgGosuxXpn", *tmp) || *tmp == '%') {
-      spec->specifier = *tmp;
-      break;
-    }
   }
+  spec->specifier = *tmp;
   if (*tmp == 'c') {
     process_c(args, spec, str);
   } else if (*tmp == 'd' || *tmp == 'i') {
@@ -676,20 +718,28 @@ int s21_sprintf(char *str, const char *format, ...) {
   while (*format) {
     char temp[BUFF] = "\0";
     Specifiers spec = {0};
-    if (*format == '%') {
+    char *tmp = (char *)format;
+    tmp++;
+    if (*format == '%' && *tmp != '%') {
       set_flags(format, &spec);
       set_width(format, args, &spec);
       set_precision(format, args, &spec);
       set_length(format, &spec);
       handle_specifier(format, &spec, args, temp);
+
       if (spec.specifier == 'n') {
-        *(va_arg(args, int *)) = s21_strlen(str_beg);
+        *(va_arg(args, int *)) = str - str_beg;
       }
 
       s21_memcpy(str, temp, s21_strlen(temp));
 
       str += s21_strlen(temp);
       skip_spec_line(&format, &str, &spec);
+    }
+    if (*format == '%' && *tmp == '%') {
+      *str = '%';
+      format += 2;
+      str++;
     }
     if (*format == '\0') {
       break;

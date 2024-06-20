@@ -2,8 +2,8 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -lm
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage -lgcov
 TEST_FLAGS = -lcheck
-SOURCES = $(wildcard s21_func/*.c)
-TESTS = testFunc/*.c s21_string_main.c
+SOURCES = $(wildcard *.c)
+TESTS = testFunc/*.c
 OBJECTS = $(SOURCES:.c=.o)
 CLANG = clang-format -i
 

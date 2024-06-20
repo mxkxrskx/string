@@ -1,4 +1,4 @@
-#include "testFunc/s21_string_test.h"
+#include "s21_string_test.h"
 
 int main() {
   Suite *suite_array[] = {suite_memchr(),          suite_memcmp(),

@@ -1,7 +1,7 @@
 #include <check.h>
 #include <string.h>
 #include <stdio.h>
-#include "../s21_func/s21_string.h"
+#include "../s21_string.h"
 
 void run_test_cases(Suite *testcase);
 

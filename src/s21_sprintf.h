@@ -14,6 +14,7 @@ typedef struct Specifiers {
   bool hash;
   bool fraction;
 
+  bool set_precision;
   char length;
   int width;
   int precision;

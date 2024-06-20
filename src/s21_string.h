@@ -2,7 +2,7 @@
 #define PROJECT_S21_STRING_H
 
 #define S21_NULL ((void *)0)
-#define BUFF 4096
+#define BUFF 4096 * 2
 
 #include <ctype.h>
 #include <limits.h>
@@ -21,6 +21,7 @@ int s21_memcmp(const void *str1, const void *str2, s21_size_t n);
 char *s21_strncat(char *dest, const char *src, s21_size_t n);
 char *s21_strerror(int errnum);
 s21_size_t s21_strlen(const char *str);
+char *s21_strerror(int errnum);
 char *s21_strchr(const char *str, int c);
 char *s21_strrchr(const char *str, int c);
 char *s21_strpbrk(const char *str1, const char *str2);
@@ -30,11 +31,11 @@ char *s21_strtok(char *str, const char *delim);
 s21_size_t s21_strcspn(const char *str1, const char *str2);
 char *s21_strstr(const char *haystack, const char *needle);
 
-//S21_BONUS
+// S21_BONUS
 int s21_sprintf(char *str, const char *format, ...);
 int s21_sscanf(const char *str, const char *format, ...);
 
-//C# func
+// C# func
 void *s21_to_upper(const char *str);
 void *s21_to_lower(const char *str);
 void *s21_insert(const char *src, const char *str, s21_size_t start_index);

@@ -89,6 +89,9 @@ void parse_length_description(ScanContext *ctx, char **f) {
     case 'l':
       ctx->length = LONG_INT;
       (*f)++;
+      if (**f == 'l') {
+        (*f)++;
+      }
       break;
     case 'L':
       ctx->length = LONG_DOUBLE;

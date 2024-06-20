@@ -7,11 +7,6 @@ void testing_strstr(const char *h, const char *n) {
   ck_assert_ptr_eq(actual, expect);
 }
 
-void testing_strstr_null(const char *h, const char *n) {
-  char *actual = (char *)s21_strstr(h, n);
-  ck_assert_ptr_null(actual);
-}
-
 START_TEST(ordinary) {
   const char *haystack = "Hello world!";
   const char *needle = "world";
@@ -40,7 +35,7 @@ START_TEST(empty_needle) {
   const char *haystack = "Hello world!";
   const char *needle = "";
 
-  testing_strstr_null(haystack, needle);
+  testing_strstr(haystack, needle);
 }
 END_TEST
 
@@ -48,7 +43,7 @@ START_TEST(empty_both) {
   const char *haystack = "";
   const char *needle = "";
 
-  testing_strstr_null(haystack, needle);
+  testing_strstr(haystack, needle);
 }
 END_TEST
 

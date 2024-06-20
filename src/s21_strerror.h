@@ -1,4 +1,3 @@
-#include "s21_string.h"
 #if defined(__APPLE__) && defined(__MACH__)
 #define OS_NAME 1
 #define MIN_ERROR 0
@@ -251,27 +250,4 @@ static const char *error_list_linux[] = {
     "State not recoverable",
     "Operation not possible due to RF-kill",
     "Memory page has hardware error"};
-#endif
-
-#if OS_NAME
-char *s21_strerror(int errnum) {
-  static char error_massage[BUFF] = "\0";
-  if (errnum >= MIN_ERROR && errnum < MAX_ERROR) {
-    s21_memcpy(error_massage, error_list_mac[errnum], BUFF);
-  } else {
-    s21_sprintf(error_massage, "Unknown error: %d", errnum);
-  }
-  return error_massage;
-}
-#else
-char *s21_strerror(int errnum) {
-  static char error_massage[BUFF] = "\0";
-  if (errnum >= MIN_ERROR && errnum < MAX_ERROR) {
-    s21_memcpy(error_massage, error_list_linux[errnum], BUFF);
-  } else {
-    s21_sprintf(error_massage, "Unknown error %d", errnum);
-  }
-  return error_massage;
-}
-
 #endif
